@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+    }
+    .user-details {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .coins-details {
+      background-color: #fff;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- User Details -->
+    <div class="user-details">
+      <h2>Welcome, <span id="userName"></span>!</h2>
+    </div>
+
+    <!-- Coins Details -->
+    <div class="coins-details">
+      <h4>Your Coins: <span id="userCoins"></span></h4>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- Script to get user details from localStorage -->
+  <script>
+    // Get user details from localStorage
+    const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+    if (!userDetails) {
+      // Handle case where user details are not found
+      console.log('User details not found');
+    } else {
+      // Set user name
+      document.getElementById('userName').innerText = userDetails.userName;
+
+      // Set user coins
+      document.getElementById('userCoins').innerText = userDetails.balance;
+    }
+  </script>
+</body>
+</html>

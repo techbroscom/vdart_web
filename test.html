@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Order</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .card {
+      margin-bottom: 20px;
+    }
+    .order-summary {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Screen 1: List of Stores -->
+<div id="screen1">
+    <div class="container">
+      <h2 class="text-center">Select a Store</h2>
+      <div class="list-group">
+        <a href="#" class="list-group-item list-group-item-action" data-store-id="1">Store 1</a>
+        <a href="#" class="list-group-item list-group-item-action" data-store-id="2">Store 2</a>
+        <a href="#" class="list-group-item list-group-item-action" data-store-id="3">Store 3</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen2" style="display: none;">
+    <div class="container">
+      <h2 class="text-center" id="selectedStoreName"></h2>
+      <div id="menuItems"></div>
+    </div>
+  </div>
+
+  <!-- Modal for Cart Summary -->
+<div class="modal fade" id="cartModal" tabindex="-1" role="dialog" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cartModalLabel">Cart Summary</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ul id="cartItems" class="list-group"></ul>
+          <h5>Total: $<span id="cartTotal"></span></h5>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Checkout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  <!-- Bootstrap JS and dependencies -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Custom JS -->
+  <script>
+    $(document).ready(function() {
+      let total = 0;
+      const orderList = $('#orderList');
+      const totalPrice = $('#totalPrice');
+
+      // Add item to order list
+      $('.btn.btn-primary').click(function() {
+        const cardBody = $(this).closest('.card-body');
+        const itemName = cardBody.find('.card-title').text();
+        const itemPrice = parseFloat(cardBody.find('.card-text').last().text().replace('Price: $', ''));
+        total += itemPrice;
+        totalPrice.text('$' + total.toFixed(2));
+        orderList.append('<li class="list-group-item">' + itemName + ' - $' + itemPrice.toFixed(2) + '</li>');
+      });
+
+      // Place order
+      $('#placeOrder').click(function() {
+        alert('Order placed! Total amount: $' + total.toFixed(2));
+        total = 0;
+        totalPrice.text('$' + total.toFixed(2));
+        orderList.empty();
+      });
+    });
+
+
+    // Sample data for stores and menu items
+const stores = [
+  { id: 1, name: "Store 1", menu: ["Item 1", "Item 2", "Item 3"] },
+  { id: 2, name: "Store 2", menu: ["Item A", "Item B", "Item C"] },
+  { id: 3, name: "Store 3", menu: ["Item X", "Item Y", "Item Z"] }
+];
+
+// Function to display the list of stores
+function showStores() {
+  document.getElementById('screen1').style.display = 'block';
+  document.getElementById('screen2').style.display = 'none';
+}
+
+// Function to display menu items for the selected store
+function showMenuItems(storeId) {
+  const selectedStore = stores.find(store => store.id == storeId);
+  if (selectedStore) {
+    document.getElementById('screen1').style.display = 'none';
+    document.getElementById('screen2').style.display = 'block';
+    document.getElementById('selectedStoreName').innerText = selectedStore.name;
+    const menuItemsContainer = document.getElementById('menuItems');
+    menuItemsContainer.innerHTML = '';
+    selectedStore.menu.forEach(item => {
+      const menuItemElement = document.createElement('div');
+      menuItemElement.classList.add('card');
+      menuItemElement.classList.add('mb-3');
+      menuItemElement.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title">${item}</h5>
+          <p class="card-text">Description of ${item}</p>
+          <button class="btn btn-primary">Add to Cart</button>
+        </div>
+      `;
+      menuItemsContainer.appendChild(menuItemElement);
+    });
+  }
+}
+
+// Attach event listeners to store links
+document.querySelectorAll('.list-group-item').forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    const storeId = parseInt(this.getAttribute('data-store-id'));
+    showMenuItems(storeId);
+  });
+});
+
+// Function to handle "Add to Cart" click
+function handleAddToCartClick(e) {
+  e.preventDefault();
+  const cardBody = $(this).closest('.card-body');
+  const itemName = cardBody.find('.card-title').text();
+  const itemPrice = parseFloat(cardBody.find('.card-text').last().text().replace('Price: $', ''));
+
+  // Add item to cart
+  const cartItemElement = document.createElement('li');
+  cartItemElement.classList.add('list-group-item');
+  cartItemElement.innerText = `${itemName} - $${itemPrice.toFixed(2)}`;
+  document.getElementById('cartItems').appendChild(cartItemElement);
+
+  // Update total
+  const cartTotal = parseFloat($('#cartTotal').text().replace('$', '') || 0);
+  $('#cartTotal').text(`$${(cartTotal + itemPrice).toFixed(2)}`);
+
+  // Show cart modal
+  $('#cartModal').modal('show');
+}
+
+// Attach updated event listeners to "Add to Cart" buttons
+$('.btn.btn-primary').click(handleAddToCartClick);
+
+
+// Initialize by showing the list of stores
+showStores();
+  </script>
+</body>
+</html>

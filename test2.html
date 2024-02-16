@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Order</title>
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<!-- Custom CSS -->
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        margin-bottom: 20px;
+    }
+    .order-summary {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out;
+        overflow-y: scroll;
+        max-height: 200px; /* Set a max height for the scrollable area */
+        z-index: 1000; /* Set a higher z-index value */
+    }
+    .order-summary.show {
+        transform: translateY(0);
+    }
+    .arrow {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid #fff;
+    }
+</style>
+</head>
+<body>
+
+
+<div class="container">
+    <h2 class="text-center">Menu</h2>
+    <div class="row">
+        <!-- Food Items -->
+        <div class="col-md-4">
+            <div class="card">
+                <!-- <img src="https://via.placeholder.com/150" class="card-img-top" alt="..."> -->
+                <div class="card-body">
+                    <h5 class="card-title">Food Item 1</h5>
+                    <p class="card-text">Description of food item 1.</p>
+                    <p class="card-text">Price: $10</p>
+                    <div class="quantity-input">
+                        <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                        <input type="text" class="quantity" value="1">
+                        <button class="btn btn-outline-secondary increase-quantity">+</button>
+                    </div>
+                    <button class="btn btn-primary add-to-cart" data-name="Food Item 1" data-price="10">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <!-- <img src="https://via.placeholder.com/150" class="card-img-top" alt="..."> -->
+                <div class="card-body">
+                    <h5 class="card-title">Food Item 2</h5>
+                    <p class="card-text">Description of food item 1.</p>
+                    <p class="card-text">Price: $20</p>
+                    <div class="quantity-input">
+                        <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                        <input type="text" class="quantity" value="1">
+                        <button class="btn btn-outline-secondary increase-quantity">+</button>
+                    </div>
+                    <button class="btn btn-primary add-to-cart" data-name="Food Item 2" data-price="20">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <!-- <img src="https://via.placeholder.com/150" class="card-img-top" alt="..."> -->
+                <div class="card-body">
+                    <h5 class="card-title">Food Item 3</h5>
+                    <p class="card-text">Description of food item 1.</p>
+                    <p class="card-text">Price: $30</p>
+                    <div class="quantity-input">
+                        <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                        <input type="text" class="quantity" value="1">
+                        <button class="btn btn-outline-secondary increase-quantity">+</button>
+                    </div>
+                    <button class="btn btn-primary add-to-cart" data-name="Food Item 3" data-price="30">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="toggleOrderSummary" class="btn btn-secondary btn-sm">Toggle Summary</button>
+
+<!-- Order Summary Bottom Sheet -->
+<div class="order-summary">
+    <div class="arrow"></div>
+    <h4>Order Summary</h4>
+    <ul id="order-list"></ul>
+    <p>Total: <span id="total-price">$0</span></p>
+    <button class="btn btn-success">Place Order</button>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<!-- Custom JS -->
+<script>
+    $(document).ready(function() {
+        let total = 0;
+        const orderList = $('#order-list');
+        const totalPrice = $('#total-price');
+        const orderSummary = $('.order-summary');
+
+        // Toggle button click handler
+        $('#toggleOrderSummary').click(function() {
+            orderSummary.toggleClass('show');
+        });
+
+        $('.add-to-cart').click(function() {
+            const name = $(this).data('name');
+            const price = $(this).data('price');
+            total += price;
+            orderList.append(`<li>${name} - $${price}</li>`);
+            totalPrice.text(`$${total}`);
+            orderSummary.addClass('show');
+        });
+
+        $('.btn-success').click(function() {
+            alert('Order placed! Total amount: $' + total);
+            total = 0;
+            orderList.empty();
+            totalPrice.text('$0');
+            orderSummary.removeClass('show');
+        });
+
+        let startY;
+        let currentY;
+
+        orderSummary.on('touchstart', function(e) {
+            startY = e.originalEvent.touches[0].clientY;
+            currentY = startY;
+        });
+
+        orderSummary.on('touchmove', function(e) {
+            currentY = e.originalEvent.touches[0].clientY;
+            const diffY = currentY - startY;
+
+            if (diffY > 0) {
+                // Swipe down
+                orderSummary.css('transform', `translateY(calc(100% + ${diffY}px))`);
+            } else {
+                // Swipe up
+                orderSummary.css('transform', `translateY(calc(${diffY}px))`);
+            }
+        });
+
+        orderSummary.on('touchend', function(e) {
+            const diffY = currentY - startY;
+
+            if (diffY > 100) {
+                // Swipe down enough to close
+                orderSummary.removeClass('show');
+                orderSummary.css('transform', 'translateY(100%)');
+            } else {
+                // Not enough swipe, reset
+                orderSummary.addClass('show');
+                orderSummary.css('transform', 'translateY(0)');
+            }
+        });
+
+    });
+
+    $('.decrease-quantity').click(function() {
+        const input = $(this).siblings('.quantity');
+        let value = parseInt(input.val());
+        if (value > 1) {
+            value--;
+            input.val(value);
+        }
+    });
+
+    $('.increase-quantity').click(function() {
+        const input = $(this).siblings('.quantity');
+        let value = parseInt(input.val());
+        value++;
+        input.val(value);
+    });
+</script>
+</body>
+</html>

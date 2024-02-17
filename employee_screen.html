@@ -1,69 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Dashboard</title>
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <!-- Custom CSS -->
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .container {
-      max-width: 800px;
-      margin: 50px auto;
-    }
-    .user-details {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-    .coins-details {
-      background-color: #fff;
-      padding: 20px;
-      margin-top: 20px;
-      border-radius: 5px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- User Details -->
-    <div class="user-details">
-      <h2>Welcome, <span id="userName"></span>!</h2>
-    </div>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Food Order</title>
+      <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+      <!-- Custom CSS -->
+      <style>
+          body {
+              background-color: #f8f9fa;
+              margin-bottom: 60px; /* Add margin for the toggle button */
+          }
+          .container {
+              max-width: 800px;
+              margin: 50px auto;
+          }
+          .user-details {
+              background-color: #fff;
+              padding: 20px;
+              border-radius: 5px;
+              box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+              text-align: center;
+          }
+          .store-list {
+              background-color: #fff;
+              padding: 20px;
+              margin-top: 20px;
+              border-radius: 5px;
+              box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+          }
+          .menu-list {
+              background-color: #fff;
+              padding: 20px;
+              margin-top: 20px;
+              border-radius: 5px;
+              box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+          }
+          .menu-item {
+              margin-bottom: 10px;
+          }
+      </style>
+  </head>
+  <body>
 
-    <!-- Coins Details -->
-    <div class="coins-details">
-      <h4>Your Coins: <span id="userCoins"></span></h4>
-    </div>
+  <div class="container">
+      <!-- User Details -->
+      <div class="user-details">
+          <h2>Welcome, <span id="userName"></span>!</h2>
+          <h4>Your Balance: <span id="userBalance"></span></h4>
+      </div>
+
+      <!-- Store List -->
+      <div class="store-list">
+          <h3>Stores List:</h3>
+          <ul id="storesList"></ul>
+      </div>
+
   </div>
 
-  <!-- Bootstrap JS and dependencies -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Firebase JavaScript SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <!-- Script to get user details from localStorage -->
+  <!-- Initialize Firebase -->
   <script>
-    // Get user details from localStorage
-    const userDetails = JSON.parse(localStorage.getItem('userDetails'));
-    if (!userDetails) {
-      // Handle case where user details are not found
-      console.log('User details not found');
-    } else {
-      // Set user name
-      document.getElementById('userName').innerText = userDetails.userName;
+      const firebaseConfig = {
+    apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
+    authDomain: "vdarttest.firebaseapp.com",
+    projectId: "vdarttest",
+    storageBucket: "vdarttest.appspot.com",
+    messagingSenderId: "157342186908",
+    databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
+    appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
+    measurementId: "G-NVXLVD13D1"
+  };
 
-      // Set user coins
-      document.getElementById('userCoins').innerText = userDetails.balance;
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Reference to the Firebase database
+      const db = firebase.database();
+
+      // Display user details
+      const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+      if (!userDetails) {
+          console.log('User details not found');
+      } else {
+          document.getElementById('userName').innerText = userDetails.userName;
+          document.getElementById('userBalance').innerText = userDetails.balance;
+      }
+
+      // Display stores list
+      const storesListRef = db.ref('stores');
+storesListRef.on('value', snapshot => {
+    const stores = snapshot.val();
+    const storesList = document.getElementById('storesList');
+    storesList.innerHTML = ''; // Clear previous list
+    for (let storeKey in stores) {
+        const store = stores[storeKey];
+        const storeItem = document.createElement('li');
+        storeItem.className = 'list-group-item';
+        storeItem.textContent = `${store.name} - ${store.location}`;
+        storeItem.addEventListener('click', () => {
+            // Store the menu items for the selected store in localStorage
+            localStorage.setItem('menuItems', JSON.stringify(store.menu));
+            // Navigate to the next page with store details and menu items
+            window.location.href = 'menu.html';
+        });
+        storesList.appendChild(storeItem);
     }
+});
+
   </script>
-</body>
-</html>
+  </body>
+  </html>

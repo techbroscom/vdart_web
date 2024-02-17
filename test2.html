@@ -48,6 +48,22 @@
         display: none;
         z-index: 2000; /* Set a higher z-index value */
     }
+    .quantity-input {
+    display: flex;
+    align-items: center;
+    }
+
+    .quantity-display {
+        margin: 0 10px;
+        font-weight: bold;
+    }
+
+    .add-to-cart {
+        margin-top: 10px; /* Add margin-top to create space between the quantity input and the button */
+    }
+    #order-list li {
+    margin-bottom: 5px; /* Add margin-bottom to create space between list items */
+}
 </style>
 </head>
 <body>
@@ -66,7 +82,7 @@
                     <p class="card-text">Price: $10</p>
                     <div class="quantity-input">
                         <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                        <input type="text" class="quantity" value="1">
+                        <span class="quantity-display">1</span>
                         <button class="btn btn-outline-secondary increase-quantity">+</button>
                     </div>
                     <button class="btn btn-primary add-to-cart" data-name="Food Item 1" data-price="10">Add to Cart</button>
@@ -82,7 +98,7 @@
                     <p class="card-text">Price: $20</p>
                     <div class="quantity-input">
                         <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                        <input type="text" class="quantity" value="1">
+                        <span class="quantity-display">1</span>
                         <button class="btn btn-outline-secondary increase-quantity">+</button>
                     </div>
                     <button class="btn btn-primary add-to-cart" data-name="Food Item 2" data-price="20">Add to Cart</button>
@@ -98,7 +114,7 @@
                     <p class="card-text">Price: $30</p>
                     <div class="quantity-input">
                         <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                        <input type="text" class="quantity" value="1">
+                        <span class="quantity-display">1</span>
                         <button class="btn btn-outline-secondary increase-quantity">+</button>
                     </div>
                     <button class="btn btn-primary add-to-cart" data-name="Food Item 3" data-price="30">Add to Cart</button>
@@ -148,23 +164,41 @@
             toggleSummary.toggleClass('show');
         });
 
-        $('.add-to-cart').click(function() {
-            const name = $(this).data('name');
-            const price = $(this).data('price');
-            total += price;
-            orderList.append(`<li>${name} - $${price} <button class="btn btn-danger btn-sm remove-item">X</button></li>`);
-            totalPrice.text(`$${total}`);
-            orderSummary.addClass('show');
-            toggleSummary.addClass('show');
-        });
+        $('.add-to-cart').unbind('click').click(function() {
+    const name = $(this).data('name');
+    const price = $(this).data('price');
+    const quantity = parseInt($(this).closest('.card-body').find('.quantity-display').text());
+    if (!isNaN(price) && !isNaN(quantity)) {
+        total += price * quantity;
+        orderList.append(`
+            <li>
+                <div>${name}</div>
+                <div>Quantity: ${quantity}</div>
+                <div>Price: $${(price * quantity).toFixed(2)}</div>
+                <button class="btn btn-danger btn-sm remove-item">Remove</button>
+            </li>
+        `);
+        totalPrice.text(`$${total.toFixed(2)}`);
+        orderSummary.addClass('show');
+        toggleSummary.addClass('show');
+    }
+    $('.btn-success').prop('disabled', total <= 0);
+});
 
-        $(document).on('click', '.remove-item', function() {
-            const priceStr = $(this).parent().text().trim();
-            const price = parseInt(priceStr.replace(/^\D+/g, ''));
-            total -= price;
-            $(this).parent().remove();
-            totalPrice.text(`$${total}`);
-        });
+$(document).on('click', '.remove-item', function() {
+    const listItem = $(this).closest('li');
+    const price = parseFloat(listItem.find('div:nth-child(3)').text().replace('Price: $', ''));
+    if (!isNaN(price)) {
+        total -= price;
+        listItem.remove();
+        totalPrice.text(`$${total.toFixed(2)}`);
+    }
+    $('.btn-success').prop('disabled', total <= 0);
+
+});
+
+$('.btn-success').prop('disabled', true);
+
 
         $('.btn-success').click(function() {
             alert('Order placed! Total amount: $' + total);
@@ -176,20 +210,20 @@
         });
 
         $('.decrease-quantity').click(function() {
-            const input = $(this).siblings('.quantity');
-            let value = parseInt(input.val());
-            if (value > 1) {
-                value--;
-                input.val(value);
-            }
-        });
+    const input = $(this).siblings('.quantity-display');
+    let value = parseInt(input.text());
+    if (value > 1) {
+        value--;
+        input.text(value);
+    }
+});
 
-        $('.increase-quantity').click(function() {
-            const input = $(this).siblings('.quantity');
-            let value = parseInt(input.val());
-            value++;
-            input.val(value);
-        });
+$('.increase-quantity').click(function() {
+    const input = $(this).siblings('.quantity-display');
+    let value = parseInt(input.text());
+    value++;
+    input.text(value);
+});
 
         $('.close-summary').click(function() {
     orderSummary.removeClass('show');

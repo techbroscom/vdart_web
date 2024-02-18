@@ -32,29 +32,30 @@
     // Your Firebase configuration and initialization code here
 
     const firebaseConfig = {
-    apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
-    authDomain: "vdarttest.firebaseapp.com",
-    projectId: "vdarttest",
-    storageBucket: "vdarttest.appspot.com",
-    messagingSenderId: "157342186908",
-    databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
-    appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
-    measurementId: "G-NVXLVD13D1"
-  };
+        apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
+        authDomain: "vdarttest.firebaseapp.com",
+        projectId: "vdarttest",
+        storageBucket: "vdarttest.appspot.com",
+        messagingSenderId: "157342186908",
+        databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
+        appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
+        measurementId: "G-NVXLVD13D1"
+    };
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
 
-      // Reference to the Firebase database
-      const db = firebase.database();
+    // Reference to the Firebase database
+    const db = firebase.database();
 
-// Get the store user ID from localStorage or any other source
+    // Get the store user ID from localStorage or any other source
 const storeDetails = JSON.parse(localStorage.getItem('userDetails')); // Assuming you store the store user ID in localStorage
 
 const storeId = storeDetails.id;
 // Reference to the pending transactions for the store user ID
 const pendingTransactionsRef = db.ref('transactions').child(storeId);
 
+    // Fetch pending transactions for the store user ID
 // Fetch pending transactions for the store user ID
 pendingTransactionsRef.once('value', snapshot => {
     const pendingTransactions = snapshot.val();
@@ -64,38 +65,51 @@ pendingTransactionsRef.once('value', snapshot => {
         pendingTransactionsList.innerHTML = ''; // Clear previous list
         for (let transactionId in pendingTransactions) {
             const transaction = pendingTransactions[transactionId];
-            // Display transaction details as needed
-            const transactionItem = document.createElement('li');
-            transactionItem.textContent = `Transaction ID: ${transactionId}, Total: ${transaction.tCoins}`;
-
-            // Create a button to update transaction status
-            const updateButton = document.createElement('button');
-            updateButton.textContent = 'Delivered';
-            updateButton.addEventListener('click', () => {
-                // Update the transaction status to "Delivered" in the database
-                db.ref('transactions').child(storeId).child(transactionId).update({
-                    tStatus: 'Delivered'
-                }).then(() => {
-                    console.log('Transaction status updated to Delivered');
-                    // Optionally, update the UI to reflect the updated status
-                    transactionItem.textContent = `Transaction ID: ${transactionId}, Total: ${transaction.tCoins} (Status: Delivered)`;
-                    // Remove the update button
-                    updateButton.remove();
-                }).catch(error => {
-                    console.error('Error updating transaction status:', error);
+            if (transaction.tStatus === 'Pending') { // Check if status is "Pending"
+                // Display transaction details
+                const transactionItem = document.createElement('li');
+                transactionItem.innerHTML = `
+                    <strong>Transaction ID:</strong> ${transactionId}<br>
+                    <strong>Total:</strong> ${transaction.tCoins}<br>
+                    <strong>Items:</strong><br>
+                    <ul>
+                        ${transaction.items.map(item =>
+                            `<li>${item.name} (Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)})</li>`
+                        ).join('')}
+                    </ul>
+                    <strong>From:</strong> ${transaction.tFromName}<br>
+                    <strong>Status:</strong> ${transaction.tStatus}<br>
+                `;
+    
+                // Create a button to update transaction status
+                const updateButton = document.createElement('button');
+                updateButton.textContent = 'Delivered';
+                updateButton.addEventListener('click', () => {
+                    // Update the transaction status to "Delivered" in the database
+                    db.ref('transactions').child(storeId).child(transactionId).update({
+                        tStatus: 'Delivered'
+                    }).then(() => {
+                        console.log('Transaction status updated to Delivered');
+                        // Remove the transaction from the list
+                        transactionItem.remove();
+                    }).catch(error => {
+                        console.error('Error updating transaction status:', error);
+                    });
                 });
-            });
-
-            // Append the button to the list item
-            transactionItem.appendChild(updateButton);
-
-            // Append the list item to the pendingTransactionsList
-            pendingTransactionsList.appendChild(transactionItem);
+    
+                // Append the button to the transaction details
+                transactionItem.appendChild(updateButton);
+    
+                // Append the transaction details to the pendingTransactionsList
+                pendingTransactionsList.appendChild(transactionItem);
+            }
         }
     } else {
         console.log('No pending transactions found for the store user ID');
     }
 });
+
+
 
 </script>
 

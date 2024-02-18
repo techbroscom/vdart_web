@@ -332,7 +332,7 @@ $('.decrease-quantity').click(function() {
 
     // Push the transaction to the Firebase database
     const transactionsRef = database.ref('transactions');
-transactionsRef.child(transactionId).set(transaction)
+transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
         .then(() => {
             // Deduct the amount from the user's balance
             const newBalance = userDetails.balance - total;

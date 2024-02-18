@@ -177,7 +177,8 @@ if (!userDetails) {
     // }
 
     if (userDetails.isOrderPending) {
-    document.querySelector('.store-list').style.display = 'none';
+
+        document.querySelector('.store-list').style.display = 'none'; // Show the store list
 
     // If there is a pending order, show the transaction details
     const pendingTranId = userDetails.pendingTransId;
@@ -201,27 +202,58 @@ if (!userDetails) {
         }
     });
 } else {
-    // If there is no pending order, display the store list
+    document.querySelector('.store-list').style.display = 'block'; // Show the store list
+
+
+    // // If there is no pending order, display the store list
+    // const storesListRef = db.ref('stores');
+    // storesListRef.on('value', snapshot => {
+    //     const stores = snapshot.val();
+    //     const storesList = document.getElementById('storesList');
+    //     storesList.innerHTML = ''; // Clear previous list
+    //     for (let storeKey in stores) {
+    //         const store = stores[storeKey];
+    //         const storeItem = document.createElement('li');
+    //         storeItem.className = 'list-group-item';
+    //         storeItem.textContent = `${store.name} - ${store.location}`;
+    //         storeItem.addEventListener('click', () => {
+    //             // Store the menu items for the selected store in localStorage
+    //             localStorage.setItem('menuItems', JSON.stringify(store.menu));
+    //             localStorage.setItem('storeDetails', JSON.stringify(store));
+    //             // Navigate to the next page with store details and menu items
+    //             window.location.href = 'menu.html';
+    //         });
+    //         storesList.appendChild(storeItem);
+    //     }
+    // });
+
     const storesListRef = db.ref('stores');
-    storesListRef.on('value', snapshot => {
-        const stores = snapshot.val();
-        const storesList = document.getElementById('storesList');
-        storesList.innerHTML = ''; // Clear previous list
-        for (let storeKey in stores) {
-            const store = stores[storeKey];
-            const storeItem = document.createElement('li');
-            storeItem.className = 'list-group-item';
-            storeItem.textContent = `${store.name} - ${store.location}`;
-            storeItem.addEventListener('click', () => {
-                // Store the menu items for the selected store in localStorage
-                localStorage.setItem('menuItems', JSON.stringify(store.menu));
-                localStorage.setItem('storeDetails', JSON.stringify(store));
-                // Navigate to the next page with store details and menu items
-                window.location.href = 'menu.html';
-            });
-            storesList.appendChild(storeItem);
-        }
-    });
+storesListRef.on('value', snapshot => {
+    const stores = snapshot.val();
+    const storesList = document.getElementById('storesList');
+    if (!stores) {
+        console.log('No stores found in the database');
+        return;
+    }
+    storesList.innerHTML = ''; // Clear previous list
+    for (let storeKey in stores) {
+        const store = stores[storeKey];
+        const storeItem = document.createElement('li');
+        storeItem.className = 'list-group-item';
+        storeItem.textContent = `${store.name} - ${store.location}`;
+        storeItem.addEventListener('click', () => {
+            // Store the menu items for the selected store in localStorage
+            localStorage.setItem('menuItems', JSON.stringify(store.menu));
+            localStorage.setItem('storeDetails', JSON.stringify(store));
+            // Navigate to the next page with store details and menu items
+            window.location.href = 'menu.html';
+        });
+        storesList.appendChild(storeItem);
+    }
+}, error => {
+    console.error('Error fetching stores:', error);
+});
+
 }
 
 }

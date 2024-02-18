@@ -345,7 +345,8 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
             database.ref('userDetails/' + userDetails.id).update({
                 balance: newBalance,
                 isOrderPending: true,
-                pendingTransId: transactionId
+                pendingTransId: transactionId,
+                message: "Order is pending..."
             }).then(() => {
                 localStorage.setItem('userDetails', JSON.stringify(userDetails));
 

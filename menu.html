@@ -340,7 +340,8 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
     // Update the user's balance in the local storage
     userDetails.balance = newBalance;
     userDetails.isOrderPending = true;
-    userDetails.pendingTransId = transactionId;
+    userDetails.pendingTransId = transactionId;    
+    userDetails.message = "Order is pending..."
     localStorage.setItem('userDetails', JSON.stringify(userDetails));
             database.ref('userDetails/' + userDetails.id).update({
                 balance: newBalance,

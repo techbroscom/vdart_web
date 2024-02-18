@@ -220,27 +220,45 @@ if (!menuItems) {
     });
 }
 
+$('.decrease-quantity').click(function() {
+            const input = $(this).siblings('.quantity-display');
+            let value = parseInt(input.text());
+            if (value > 1) {
+                value--;
+                input.text(value);
+            }
+        });
+
+        $('.increase-quantity').click(function() {
+            const input = $(this).siblings('.quantity-display');
+            let value = parseInt(input.text());
+            value++;
+            input.text(value);
+        });
+
 
         $('.add-to-cart').click(function() {
-            const name = $(this).data('name');
-            const price = $(this).data('price');
-            const quantity = parseInt($(this).closest('.card-body').find('.quantity-display').text());
-            if (!isNaN(price) && !isNaN(quantity)) {
-                total += price * quantity;
-                orderList.append(`
-                    <li>
-                        <div>${name}</div>
-                        <div>Quantity: ${quantity}</div>
-                        <div>Price: $${(price * quantity).toFixed(2)}</div>
-                        <button class="btn btn-danger btn-sm remove-item">Remove</button>
-                    </li>
-                `);
-                totalPrice.text(`$${total.toFixed(2)}`);
-                orderSummary.addClass('show');
-                toggleSummary.addClass('show');
-            }
-            $('.btn-success').prop('disabled', total <= 0);
-        });
+    const name = $(this).data('name');
+    const price = $(this).data('price');
+    const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
+    let quantity = parseInt(quantityDisplay.text());
+
+    if (!isNaN(price) && !isNaN(quantity)) {
+        total += price * quantity;
+        orderList.append(`
+            <li>
+                <div>${name}</div>
+                <div>Quantity: <span class="item-quantity">${quantity}</span></div>
+                <div>Price: $${(price * quantity).toFixed(2)}</div>
+                <button class="btn btn-danger btn-sm remove-item">Remove</button>
+            </li>
+        `);
+        totalPrice.text(`$${total.toFixed(2)}`);
+        orderSummary.addClass('show');
+        toggleSummary.addClass('show');
+    }
+    $('.btn-success').prop('disabled', total <= 0);
+});
 
         $(document).on('click', '.remove-item', function() {
             const listItem = $(this).closest('li');
@@ -346,28 +364,12 @@ transactionsRef.child(transactionId).set(transaction)
             console.error('Error adding transaction: ', error);
             alert('Failed to place order. Please try again.');
         });
+    });
 
-        $('.decrease-quantity').click(function() {
-            const input = $(this).siblings('.quantity-display');
-            let value = parseInt(input.text());
-            if (value > 1) {
-                value--;
-                input.text(value);
-            }
-        });
-
-        $('.increase-quantity').click(function() {
-            const input = $(this).siblings('.quantity-display');
-            let value = parseInt(input.text());
-            value++;
-            input.text(value);
-        });
-
-        $('.close-summary').click(function() {
+    $('.close-summary').click(function() {
             orderSummary.removeClass('show');
             toggleSummary.removeClass('show');
         });
-    });
 
     document.onkeydown = function(e) {
         if (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 67 || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 123)) {

@@ -7,63 +7,98 @@
       <!-- Bootstrap CSS -->
       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
       <!-- Custom CSS -->
+
       <style>
-          body {
-              background-color: #f8f9fa;
-              margin-bottom: 60px; /* Add margin for the toggle button */
-          }
-          .container {
-              max-width: 800px;
-              margin: 50px auto;
-          }
-          .user-details {
-              background-color: #fff;
-              padding: 20px;
-              border-radius: 5px;
-              box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-              text-align: center;
-          }
-          .store-list {
-              background-color: #fff;
-              padding: 20px;
-              margin-top: 20px;
-              border-radius: 5px;
-              box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-          }
-          .menu-list {
-              background-color: #fff;
-              padding: 20px;
-              margin-top: 20px;
-              border-radius: 5px;
-              box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-          }
-          .menu-item {
-              margin-bottom: 10px;
-          }
-      </style>
-  </head>
-  <body>
+        body {
+            background-color: #f8f9fa;
+            margin-bottom: 60px; /* Add margin for the toggle button */
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+        }
+        .user-details {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .store-list {
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .menu-list {
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .menu-item {
+            margin-bottom: 10px;
+        }
+        .navbar {
+            background-color: #007bff; /* Set the navbar color to #007bff */
+        }
+        .nav-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .pending-transaction {
+            /* background-color: #ffc107; Yellow color for pending */
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .completed-transaction {
+            background-color: #28a745; /* Green color for completed */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .cancelled-transaction {
+            background-color: #dc3545; /* Red color for cancelled */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
 
-  <div class="container">
-      <!-- User Details -->
-      <div class="user-details">
-          <h2>Welcome, <span id="userName"></span>!</h2>
-          <h4>Your Balance: <span id="userBalance"></span></h4>
-      </div>
+    <nav class="navbar navbar-dark bg-primary center">
+        <span class="navbar-brand mb-0 h1">VDart Cafe Wallets</span>
+    </nav>
 
-      <!-- Store List -->
-      <div class="store-list">
-          <h3>Stores List:</h3>
-          <ul id="storesList"></ul>
-      </div>
-
-      <div id="pendingTransactionDetails" style="display: none;">
-        <h4>Pending Transaction Details</h4>
-        <div id="pendingItems"></div>
-        <p>Total: <span id="pendingTotal"></span></p>
+<div class="container">
+    <!-- User Details -->
+    <div class="user-details">
+        <h2>Welcome, <span id="userName"></span>!</h2>
+        <h4>Your Balance: <span id="userBalance"></span></h4>
     </div>
 
-  </div>
+    <!-- Store List -->
+    <div class="store-list">
+        <h3>Stores List:</h3>
+        <ul id="storesList"></ul>
+    </div>
+
+    <!-- Pending Transaction Details -->
+    <div id="pendingTransaction" style="display: none;" class="pending-transaction">
+        <h3>Pending Transaction Details:</h3>
+        <div id="pendingTransactionItems"></div>
+        <p>Total: <span id="pendingTransactionTotal"></span></p>
+    </div>
+
+</div>
 
   <!-- Firebase JavaScript SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -96,44 +131,99 @@ if (!userDetails) {
     document.getElementById('userName').innerText = userDetails.userName;
     document.getElementById('userBalance').innerText = userDetails.balance;
 
+    // if (userDetails.isOrderPending) {
+    //     document.querySelector('.store-list').style.display = 'none';
+
+    //     // If there is a pending order, show the transaction details
+    //     const pendingTranId = userDetails.pendingTransId;
+    //     const pendingTranRef = db.ref('transactions').child(pendingTranId);
+    //     pendingTranRef.once('value', snapshot => {
+    //         const pendingTran = snapshot.val();
+    //         if (pendingTran) {
+    //             // Display pending transaction details
+    //             // For example, show the transaction details in an alert
+    //             // alert(`Pending Transaction Details:\nItems: ${JSON.stringify(pendingTran.items)}\nTotal: ${pendingTran.tCoins}`);
+    //             // Display a formatted alert with the pending transaction details
+    //     alert(`Pending Transaction Details:
+    //     Items:
+    //     ${pendingTran.items.map(item => `- ${item.name} (Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)})`).join('\n')}
+    //     Total: $${pendingTran.tCoins.toFixed(2)}`);
+    //         } else {
+    //             console.log('Pending transaction not found');
+    //         }
+    //     });
+    // } else {
+    //     // If there is no pending order, display the store list
+    //     const storesListRef = db.ref('stores');
+    //     storesListRef.on('value', snapshot => {
+    //         const stores = snapshot.val();
+    //         const storesList = document.getElementById('storesList');
+    //         storesList.innerHTML = ''; // Clear previous list
+    //         for (let storeKey in stores) {
+    //             const store = stores[storeKey];
+    //             const storeItem = document.createElement('li');
+    //             storeItem.className = 'list-group-item';
+    //             storeItem.textContent = `${store.name} - ${store.location}`;
+    //             storeItem.addEventListener('click', () => {
+    //                 // Store the menu items for the selected store in localStorage
+    //                 localStorage.setItem('menuItems', JSON.stringify(store.menu));
+    //                 localStorage.setItem('storeDetails', JSON.stringify(store));
+    //                 // Navigate to the next page with store details and menu items
+    //                 window.location.href = 'menu.html';
+    //             });
+    //             storesList.appendChild(storeItem);
+    //         }
+    //     });
+    // }
+
     if (userDetails.isOrderPending) {
-        // If there is a pending order, show the transaction details
-        const pendingTranId = userDetails.pendingTransId;
-        const pendingTranRef = db.ref('transactions').child(pendingTranId);
-        pendingTranRef.once('value', snapshot => {
-            const pendingTran = snapshot.val();
-            if (pendingTran) {
-                // Display pending transaction details
-                // For example, show the transaction details in an alert
-                alert(`Pending Transaction Details:\nItems: ${JSON.stringify(pendingTran.items)}\nTotal: ${pendingTran.tCoins}`);
-                
-            } else {
-                console.log('Pending transaction not found');
-            }
-        });
-    } else {
-        // If there is no pending order, display the store list
-        const storesListRef = db.ref('stores');
-        storesListRef.on('value', snapshot => {
-            const stores = snapshot.val();
-            const storesList = document.getElementById('storesList');
-            storesList.innerHTML = ''; // Clear previous list
-            for (let storeKey in stores) {
-                const store = stores[storeKey];
-                const storeItem = document.createElement('li');
-                storeItem.className = 'list-group-item';
-                storeItem.textContent = `${store.name} - ${store.location}`;
-                storeItem.addEventListener('click', () => {
-                    // Store the menu items for the selected store in localStorage
-                    localStorage.setItem('menuItems', JSON.stringify(store.menu));
-                    localStorage.setItem('storeDetails', JSON.stringify(store));
-                    // Navigate to the next page with store details and menu items
-                    window.location.href = 'menu.html';
-                });
-                storesList.appendChild(storeItem);
-            }
-        });
-    }
+    document.querySelector('.store-list').style.display = 'none';
+
+    // If there is a pending order, show the transaction details
+    const pendingTranId = userDetails.pendingTransId;
+    const pendingTranRef = db.ref('transactions').child(pendingTranId);
+    pendingTranRef.once('value', snapshot => {
+        const pendingTran = snapshot.val();
+        if (pendingTran) {
+            // Display pending transaction details in the new div element
+            const pendingTransactionItems = document.getElementById('pendingTransactionItems');
+            const pendingTransactionTotal = document.getElementById('pendingTransactionTotal');
+
+            pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
+                `<div>${item.name} (Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)})</div>`
+            ).join('');
+
+            pendingTransactionTotal.textContent = `$${pendingTran.tCoins.toFixed(2)}`;
+
+            document.getElementById('pendingTransaction').style.display = 'block';
+        } else {
+            console.log('Pending transaction not found');
+        }
+    });
+} else {
+    // If there is no pending order, display the store list
+    const storesListRef = db.ref('stores');
+    storesListRef.on('value', snapshot => {
+        const stores = snapshot.val();
+        const storesList = document.getElementById('storesList');
+        storesList.innerHTML = ''; // Clear previous list
+        for (let storeKey in stores) {
+            const store = stores[storeKey];
+            const storeItem = document.createElement('li');
+            storeItem.className = 'list-group-item';
+            storeItem.textContent = `${store.name} - ${store.location}`;
+            storeItem.addEventListener('click', () => {
+                // Store the menu items for the selected store in localStorage
+                localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                localStorage.setItem('storeDetails', JSON.stringify(store));
+                // Navigate to the next page with store details and menu items
+                window.location.href = 'menu.html';
+            });
+            storesList.appendChild(storeItem);
+        }
+    });
+}
+
 }
 
   </script>

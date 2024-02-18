@@ -63,32 +63,63 @@ const pendingTransactionsRef = db.ref('transactions').child(storeId);
 pendingTransactionsRef.once('value', snapshot => {
     const pendingTransactions = snapshot.val();
     if (pendingTransactions) {
-        // Create a new workbook
-        const wb = XLSX.utils.book_new();
-        wb.Props = {
-            Title: 'Transactions',
-            Author: 'Your Name',
-            CreatedDate: new Date()
-        };
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
+    wb.Props = {
+        Title: 'Transactions',
+        Author: 'Your Name',
+        CreatedDate: new Date()
+    };
 
-        // Create a new worksheet
-        const ws = XLSX.utils.json_to_sheet(Object.values(pendingTransactions));
+    // Create a worksheet for the original transactions
+const originalData = Object.keys(pendingTransactions).map(transactionId => {
+    const transaction = pendingTransactions[transactionId];
+    return {
+        tDate: transaction.tDate,
+        tCoins: transaction.tCoins,
+        tFrom: transaction.tFrom,
+        tTo: transaction.tTo,
+        tFromName: transaction.tFromName,
+        tType: transaction.tType
+    };
+});
 
-        // Add the worksheet to the workbook
-        XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+const originalWs = XLSX.utils.json_to_sheet(originalData);
+XLSX.utils.book_append_sheet(wb, originalWs, 'Original Transactions');
 
-        // Convert the workbook to a binary Excel file and trigger the download
-        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
-        function s2ab(s) {
-            const buf = new ArrayBuffer(s.length);
-            const view = new Uint8Array(buf);
-            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
-        }
-        saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), 'transactions_'+Date.now()+'.xlsx');
-    } else {
-        console.log('No transactions found for the store user ID');
+
+    // Summarize tCoins based on tDate
+const summary = {};
+for (const transaction of Object.values(pendingTransactions)) {
+    const tDate = transaction.tDate; // Assuming you have a tDate property in your transaction object
+    const tCoins = transaction.tCoins;
+    summary[tDate] = (summary[tDate] || 0) + tCoins;
+}
+
+// Create a worksheet for the summarized data
+const summaryData = [];
+for (const [tDate, sumOfCoins] of Object.entries(summary)) {
+    summaryData.push({ tDate, 'Sum of tCoins': sumOfCoins });
+}
+
+const summaryWs = XLSX.utils.json_to_sheet(summaryData, { header: ['tDate', 'Sum of tCoins'] });
+XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+
+    // Convert the workbook to a binary Excel file and trigger the download
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+    function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
     }
+    saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), 'transactions_'+Date.now()+'.xlsx');
+} else {
+    console.log('No transactions found for the store user ID');
+}
+
+
+
 });
 
 

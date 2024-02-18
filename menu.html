@@ -141,6 +141,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <!-- Custom JS -->
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
     $(document).ready(function() {
         let total = 0;
@@ -159,6 +162,34 @@
             orderSummary.toggleClass('show');
             toggleSummary.toggleClass('show');
         });
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
+  authDomain: "vdarttest.firebaseapp.com",
+  projectId: "vdarttest",
+  storageBucket: "vdarttest.appspot.com",
+  messagingSenderId: "157342186908",
+  databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
+  appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
+  measurementId: "G-NVXLVD13D1"
+};
+  
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Get a reference to the database service
+    const database = firebase.database();
+
+        // Display user details
+const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+if (!userDetails) {
+    console.log('User details not found');
+} else {
+    // Display user details in the order summary
+    $('#userName').text(userDetails.userName);
+    $('#userBalance').text(userDetails.balance);
+}
+
 
         // Display menu items
 const menuItems = JSON.parse(localStorage.getItem('menuItems'));
@@ -222,15 +253,98 @@ if (!menuItems) {
             $('.btn-success').prop('disabled', total <= 0);
         });
 
+        function generateTransactionId() {
+    const currentDateTime = new Date();
+    const year = currentDateTime.getFullYear();
+    const month = ('0' + (currentDateTime.getMonth() + 1)).slice(-2); // Months are zero-based
+    const date = ('0' + currentDateTime.getDate()).slice(-2);
+    const hours = ('0' + currentDateTime.getHours()).slice(-2);
+    const minutes = ('0' + currentDateTime.getMinutes()).slice(-2);
+    const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
+    return `${year}${month}${date}${hours}${minutes}${seconds}`;
+}
+
         $('.btn-success').prop('disabled', true);
 
         $('.btn-success').click(function() {
-            alert('Order placed! Total amount: $' + total);
-            total = 0;
-            orderList.empty();
-            totalPrice.text('$0');
-            orderSummary.removeClass('show');
-            toggleSummary.removeClass('show');
+    // Check if there is enough balance
+    if (total > userDetails.balance) {
+        alert('Insufficient balance. Please add funds to your account.');
+        return;
+    }
+
+    const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
+
+    // Generate a transaction ID
+    const transactionId = generateTransactionId();
+
+    const transaction = {
+        items: [],
+        tCoins: total,
+        tFrom: userDetails.id,
+        tFromName: userDetails.userName,
+        tTo: storeDetails.id, // Assuming this is the store ID or some identifier
+        tToName: storeDetails.name, // Assuming this is the store name
+        tId: transactionId, // Generating a unique ID with a timestamp
+        tType: 'order', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
+        tStatus: 'Pending'
+    };
+
+    $('#order-list li').each(function() {
+    const itemName = $(this).find('div:nth-child(1)').text();
+    const quantity = parseInt($(this).find('div:nth-child(2)').text().split(': ')[1]);
+    const priceText = $(this).find('div:nth-child(3)').text();
+    const priceMatch = priceText.match(/Price: \$([0-9.]+)/);
+    if (priceMatch && priceMatch.length > 1) {
+        const price = parseFloat(priceMatch[1]);
+        if (!isNaN(price)) {
+            const item = {
+                name: itemName,
+                quantity: quantity,
+                price: price
+            };
+            transaction.items.push(item);
+        } else {
+            console.error('Invalid price for item: ' + itemName);
+        }
+    } else {
+        console.error('Price not found for item: ' + itemName);
+    }
+});
+
+    // Push the transaction to the Firebase database
+    const transactionsRef = database.ref('transactions');
+transactionsRef.child(transactionId).set(transaction)
+        .then(() => {
+            // Deduct the amount from the user's balance
+            const newBalance = userDetails.balance - total;
+
+    // Update the user's balance in the local storage
+    userDetails.balance = newBalance;
+    userDetails.isOrderPending = true;
+    userDetails.pendingTransId = transactionId;
+    localStorage.setItem('userDetails', JSON.stringify(userDetails));
+            database.ref('userDetails/' + userDetails.id).update({
+                balance: newBalance,
+                isOrderPending: true,
+                pendingTransId: transactionId
+            }).then(() => {
+                localStorage.setItem('userDetails', JSON.stringify(userDetails));
+
+                alert('Order placed! Total amount: $' + total);
+                total = 0;
+                orderList.empty();
+                totalPrice.text('$0');
+                orderSummary.removeClass('show');
+                toggleSummary.removeClass('show');
+            }).catch(error => {
+                console.error('Error updating user balance: ', error);
+                alert('Failed to place order. Please try again.');
+            });
+        })
+        .catch(error => {
+            console.error('Error adding transaction: ', error);
+            alert('Failed to place order. Please try again.');
         });
 
         $('.decrease-quantity').click(function() {
@@ -260,6 +374,7 @@ if (!menuItems) {
             return false;
         }
     };
+});
 </script>
 </body>
 </html>

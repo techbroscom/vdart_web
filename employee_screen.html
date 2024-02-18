@@ -83,34 +83,51 @@
       const db = firebase.database();
 
       // Display user details
-      const userDetails = JSON.parse(localStorage.getItem('userDetails'));
-      if (!userDetails) {
-          console.log('User details not found');
-      } else {
-          document.getElementById('userName').innerText = userDetails.userName;
-          document.getElementById('userBalance').innerText = userDetails.balance;
-      }
+const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+if (!userDetails) {
+    console.log('User details not found');
+} else {
+    document.getElementById('userName').innerText = userDetails.userName;
+    document.getElementById('userBalance').innerText = userDetails.balance;
 
-      // Display stores list
-      const storesListRef = db.ref('stores');
-storesListRef.on('value', snapshot => {
-    const stores = snapshot.val();
-    const storesList = document.getElementById('storesList');
-    storesList.innerHTML = ''; // Clear previous list
-    for (let storeKey in stores) {
-        const store = stores[storeKey];
-        const storeItem = document.createElement('li');
-        storeItem.className = 'list-group-item';
-        storeItem.textContent = `${store.name} - ${store.location}`;
-        storeItem.addEventListener('click', () => {
-            // Store the menu items for the selected store in localStorage
-            localStorage.setItem('menuItems', JSON.stringify(store.menu));
-            // Navigate to the next page with store details and menu items
-            window.location.href = 'menu.html';
+    if (userDetails.isOrderPending) {
+        // If there is a pending order, show the transaction details
+        const pendingTranId = userDetails.pendingTransId;
+        const pendingTranRef = db.ref('transactions').child(pendingTranId);
+        pendingTranRef.once('value', snapshot => {
+            const pendingTran = snapshot.val();
+            if (pendingTran) {
+                // Display pending transaction details
+                // For example, show the transaction details in an alert
+                alert(`Pending Transaction Details:\nItems: ${JSON.stringify(pendingTran.items)}\nTotal: ${pendingTran.tCoins}`);
+            } else {
+                console.log('Pending transaction not found');
+            }
         });
-        storesList.appendChild(storeItem);
+    } else {
+        // If there is no pending order, display the store list
+        const storesListRef = db.ref('stores');
+        storesListRef.on('value', snapshot => {
+            const stores = snapshot.val();
+            const storesList = document.getElementById('storesList');
+            storesList.innerHTML = ''; // Clear previous list
+            for (let storeKey in stores) {
+                const store = stores[storeKey];
+                const storeItem = document.createElement('li');
+                storeItem.className = 'list-group-item';
+                storeItem.textContent = `${store.name} - ${store.location}`;
+                storeItem.addEventListener('click', () => {
+                    // Store the menu items for the selected store in localStorage
+                    localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                    localStorage.setItem('storeDetails', JSON.stringify(store));
+                    // Navigate to the next page with store details and menu items
+                    window.location.href = 'menu.html';
+                });
+                storesList.appendChild(storeItem);
+            }
+        });
     }
-});
+}
 
   </script>
   </body>

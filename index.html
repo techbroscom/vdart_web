@@ -107,6 +107,11 @@ loginForm.addEventListener('submit', (e) => {
       console.error('Error fetching user data:', error);
     });
 });
+
+// Clear local storage on page load
+window.onload = function() {
+    localStorage.clear();
+};
   </script>
 
 <div id="errorMessage" class="alert alert-danger" style="display: none;">

@@ -355,6 +355,7 @@ transactionsRef.child(transactionId).set(transaction)
                 totalPrice.text('$0');
                 orderSummary.removeClass('show');
                 toggleSummary.removeClass('show');
+                window.location.href = 'employee_screen.html';
             }).catch(error => {
                 console.error('Error updating user balance: ', error);
                 alert('Failed to place order. Please try again.');

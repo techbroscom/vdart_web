@@ -57,6 +57,12 @@
           <ul id="storesList"></ul>
       </div>
 
+      <div id="pendingTransactionDetails" style="display: none;">
+        <h4>Pending Transaction Details</h4>
+        <div id="pendingItems"></div>
+        <p>Total: <span id="pendingTotal"></span></p>
+    </div>
+
   </div>
 
   <!-- Firebase JavaScript SDK -->
@@ -100,6 +106,7 @@ if (!userDetails) {
                 // Display pending transaction details
                 // For example, show the transaction details in an alert
                 alert(`Pending Transaction Details:\nItems: ${JSON.stringify(pendingTran.items)}\nTotal: ${pendingTran.tCoins}`);
+                
             } else {
                 console.log('Pending transaction not found');
             }

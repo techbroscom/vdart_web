@@ -93,6 +93,8 @@ loginForm.addEventListener('submit', (e) => {
           window.location.href = 'employee_screen.html';
         } else if (userData.userType === 'Store') {
           window.location.href = 'store_screen.html';
+        } else if (userData.userType === 'Admin') {
+          window.location.href = 'admin_panel.html';
         } else {
           // Handle other user types
           console.log('Unknown user type');

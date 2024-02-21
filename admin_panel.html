@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Page with Sidebar</title>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
@@ -49,35 +51,41 @@
 
 @media screen and (max-width: 768px) {
     .sidebar {
-        width: 100%;
-        left: -250px; /* Hide sidebar off-screen by default */
-        transition: left 0.3s;
+        left: -250px;
     }
 
-    .content {
-        margin-left: 0;
-        transition: margin-left 0.3s;
-    }
-
-    /* Show sidebar when menu icon is clicked */
     .sidebar.show {
         left: 0;
     }
 
-    /* Shift content area when sidebar is shown */
-    .content.show {
-        margin-left: 250px;
+    .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 2;
+        font-size: 20px;
+        background-color: #333;
+        color: white;
+        border: none;
+        cursor: pointer;
     }
 }
+
     </style>
 </head>
 
 <body>
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
     <div class="sidebar">
         <a href="#" class="active" onclick="showContent('search')">Search</a>
         <a href="#" onclick="showContent('employee')">Employee Data</a>
         <a href="#" onclick="showContent('store')">Store Data</a>
+        <a href="#" onclick="showContent('admin')">Admin Data</a>
         <a href="#" onclick="showContent('credit')">Credit Coins</a>
+        <a href="#" onclick="showContent('createUser')">Add New User</a>
+        <a href="#" onclick="showContent('config')">Configuration</a>
     </div>
     <div class="content" id="content">
         <div id="search">
@@ -92,17 +100,42 @@
                 <button onclick="updateUserDetails()">Update Details</button>
             </div>
         </div>
-        <div id="profile" style="display:none;">
-            <h2>Profile</h2>
+
+        <div id="employee" style="display:none;">
+            <h2>Employee Data</h2>
             <p>This is the Profile content.</p>
         </div>
-        <div id="settings" style="display:none;">
-            <h2>Settings</h2>
+        <div id="store" style="display:none;">
+            <h2>Store Data</h2>
             <p>This is the Settings content.</p>
         </div>
-        <div id="logout" style="display:none;">
-            <h2>Logout</h2>
+        <div id="admin" style="display:none;">
+            <h2>Admin Data</h2>
+            <p>This is the Settings content.</p>
+        </div>
+        <div id="credit" style="display:none;">
+            <h2>Credit</h2>
             <p>This is the Logout content.</p>
+        </div>
+        <div id="config" style="display:none;">
+            <h2>Configuration</h2>
+            <p>This is the Logout content.</p>
+        </div>
+        <div id="createUser" style="display:none;">
+            <h2>Create New User</h2>
+            <form id="createUserForm">
+                <label for="newUserId">User ID:</label>
+                <input type="text" id="newUserId" name="newUserId" required><br>
+                <label for="newUserName">User Name:</label>
+                <input type="text" id="newUserName" name="newUserName" required><br>
+                <label for="newUserBalance">Balance:</label>
+                <input type="number" id="newUserBalance" name="newUserBalance" required><br>
+                <label for="newUserLocation">Location:</label>
+                <input type="text" id="newUserLocation" name="newUserLocation" required><br>
+                <label for="newUserStatus">Status:</label>
+                <input type="text" id="newUserStatus" name="newUserStatus" required><br>
+                <button type="submit">Create User</button>
+            </form>
         </div>
     </div>
 
@@ -119,6 +152,14 @@
             }
             document.getElementById(id).style.display = 'block';
             event.currentTarget.classList.add('active');
+
+            if (id === 'employee') {
+                showEmployeeData();
+            } else if (id === 'store') {
+                showStoreData();
+            } else if (id === 'admin') {
+                showAdminData();
+            }
         }
 
         // Show the first content by default
@@ -127,16 +168,16 @@
 
 // Firebase configuration (replace with your own config)
 const firebaseConfig = {
-    apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
-    authDomain: "vdarttest.firebaseapp.com",
-    projectId: "vdarttest",
-    storageBucket: "vdarttest.appspot.com",
-    messagingSenderId: "157342186908",
-    databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
-    appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
-    measurementId: "G-NVXLVD13D1"
-  };
-
+  apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
+  authDomain: "vdarttest.firebaseapp.com",
+  projectId: "vdarttest",
+  storageBucket: "vdarttest.appspot.com",
+  messagingSenderId: "157342186908",
+  databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
+  appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
+  measurementId: "G-NVXLVD13D1"
+};
+  
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
@@ -193,7 +234,113 @@ function updateUserDetails() {
     });
 }
 
+function showEmployeeData() {
+    var userDetailsRef = database.ref('userDetails');
+    userDetailsRef.once('value', function(snapshot) {
+        var userDetails = snapshot.val();
+        var employeeTableHtml = '<h2>Employee Data</h2><div class="table-responsive"><table class="table">';
+        employeeTableHtml += '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
+        employeeTableHtml += '<tbody>';
+        for (var userId in userDetails) {
+            if (userDetails[userId].userType === 'Employee') {
+                employeeTableHtml += '<tr>';
+                employeeTableHtml += '<td>' + userDetails[userId].id + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].userName + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].balance + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].location + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].status + '</td>';
+                employeeTableHtml += '</tr>';
+            }
+        }
+        employeeTableHtml += '</tbody></table></div>';
+        document.getElementById('employee').innerHTML = employeeTableHtml;
+    });
+}
+
+function showStoreData() {
+    var userDetailsRef = database.ref('userDetails');
+    userDetailsRef.once('value', function(snapshot) {
+        var userDetails = snapshot.val();
+        var employeeTableHtml = '<h2>Store Data</h2><div class="table-responsive"><table class="table">';
+        employeeTableHtml += '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
+        employeeTableHtml += '<tbody>';
+        for (var userId in userDetails) {
+            if (userDetails[userId].userType === 'Store') {
+                employeeTableHtml += '<tr>';
+                employeeTableHtml += '<td>' + userDetails[userId].id + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].userName + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].balance + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].location + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].status + '</td>';
+                employeeTableHtml += '</tr>';
+            }
+        }
+        employeeTableHtml += '</tbody></table></div>';
+        document.getElementById('store').innerHTML = employeeTableHtml;
+    });
+}
+
+function showAdminData() {
+    var userDetailsRef = database.ref('userDetails');
+    userDetailsRef.once('value', function(snapshot) {
+        var userDetails = snapshot.val();
+        var employeeTableHtml = '<h2>Admin Data</h2><div class="table-responsive"><table class="table">';
+        employeeTableHtml += '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
+        employeeTableHtml += '<tbody>';
+        for (var userId in userDetails) {
+            if (userDetails[userId].userType === 'Admin') {
+                employeeTableHtml += '<tr>';
+                employeeTableHtml += '<td>' + userDetails[userId].id + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].userName + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].balance + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].location + '</td>';
+                employeeTableHtml += '<td>' + userDetails[userId].status + '</td>';
+                employeeTableHtml += '</tr>';
+            }
+        }
+        employeeTableHtml += '</tbody></table></div>';
+        document.getElementById('admin').innerHTML = employeeTableHtml;
+    });
+}
+
+
+
+
+function toggleSidebar() {
+    var sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('show');
+}
+
 document.getElementById('searchForm').addEventListener('submit', searchUser);
+
+document.getElementById('createUserForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var newUserId = document.getElementById('newUserId').value;
+    var newUserName = document.getElementById('newUserName').value;
+    var newUserBalance = document.getElementById('newUserBalance').value;
+    var newUserLocation = document.getElementById('newUserLocation').value;
+    var newUserStatus = document.getElementById('newUserStatus').value;
+
+    var newUserDetails = {
+        id: newUserId,
+        userName: newUserName,
+        balance: parseInt(newUserBalance),
+        location: newUserLocation,
+        status: newUserStatus,
+        userType: 'Customer' // Assuming new users are customers
+    };
+
+    var newUserRef = database.ref('userDetails').child(newUserId);
+    newUserRef.set(newUserDetails, function(error) {
+        if (error) {
+            alert('Failed to create user');
+        } else {
+            alert('User created successfully');
+            document.getElementById('createUserForm').reset();
+        }
+    });
+});
+
 </script>
 </body>
 

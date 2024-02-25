@@ -113,14 +113,23 @@
             <h2>Admin Data</h2>
             <p>This is the Settings content.</p>
         </div>
+
         <div id="credit" style="display:none;">
             <h2>Credit</h2>
             <p>This is the Logout content.</p>
         </div>
+
         <div id="config" style="display:none;">
             <h2>Configuration</h2>
-            <p>This is the Logout content.</p>
+            <p>Coins Limit: <span id="coinsLimit" contenteditable="true"></span></p>
+            <h3>Locations</h3>
+            <ul id="locationsList"></ul>
+            <button onclick="addLocation()">Add Location</button>
+            <h3>User Types</h3>
+            <ul id="userTypesList"></ul>
+            <button onclick="addUserType()">Add User Type</button>
         </div>
+
         <div id="createUser" style="display:none;">
             <h2>Create New User</h2>
             <form id="createUserForm">
@@ -340,6 +349,44 @@ document.getElementById('createUserForm').addEventListener('submit', function(ev
         }
     });
 });
+
+// Fetch the config data from Firebase
+var configRef = database.ref('config');
+configRef.once('value', function(snapshot) {
+    var config = snapshot.val();
+    coinsLimit = config.coinsLimit;
+    locations = Object.values(config.locations);
+    userTypes = Object.values(config.userType);
+    document.getElementById('coinsLimit').innerHTML = coinsLimit;
+
+    // Display locations
+    var locationsList = document.getElementById('locationsList');
+    locationsList.innerHTML = locations.map(location => `<li>${location}</li>`).join('');
+
+    // Display user types
+    var userTypesList = document.getElementById('userTypesList');
+    userTypesList.innerHTML = userTypes.map(userType => `<li>${userType}</li>`).join('');
+});
+
+document.getElementById('coinsLimit').addEventListener('input', function() {
+    var newCoinsLimit = document.getElementById('coinsLimit').textContent;
+    database.ref('config/coinsLimit').set(newCoinsLimit);
+});
+
+function addLocation() {
+    var newLocation = prompt('Enter new location:');
+    if (newLocation) {
+        database.ref('config/locations').push(newLocation);
+    }
+}
+
+function addUserType() {
+    var newUserType = prompt('Enter new user type:');
+    if (newUserType) {
+        database.ref('config/userType').push(newUserType);
+    }
+}
+
 
 </script>
 </body>

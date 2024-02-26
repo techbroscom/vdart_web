@@ -14,7 +14,6 @@
             margin-bottom: 60px; /* Add margin for the toggle button */
         }
         .container {
-            max-width: 800px;
             margin: 50px auto;
         }
         .user-details {
@@ -197,7 +196,7 @@
         <h5>Message: <span id="userMessage"></span></h4>
     </div>
 
-    <div>
+    <!-- <div>
         <div class="card">
             <div class="card-inner">
                 <div class="front">
@@ -237,7 +236,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     
 
 
@@ -345,37 +344,36 @@ if (!userDetails) {
 
     // If there is no pending order, display the store list
 
-    const storesListRef = db.ref('stores');
-storesListRef.on('value', snapshot => {
-    const stores = snapshot.val();
-    const storesList = document.getElementById('storesList');
-    if (!stores) {
-        console.log('No stores found in the database');
-        return;
-    }
-    storesList.innerHTML = ''; // Clear previous list
-    for (let storeKey in stores) {
-        const store = stores[storeKey];
-        const storeItem = document.createElement('li');
-        storeItem.className = 'list-group-item';
-        storeItem.textContent = `${store.name} - ${store.location}`;
-        storeItem.addEventListener('click', () => {
-            // Store the menu items for the selected store in localStorage
-            localStorage.setItem('menuItems', JSON.stringify(store.menu));
-            localStorage.setItem('storeDetails', JSON.stringify(store));
-            // Navigate to the next page with store details and menu items
-            window.location.href = 'menu.html';
+            const storesListRef = db.ref('stores');
+        storesListRef.on('value', snapshot => {
+            const stores = snapshot.val();
+            const storesList = document.getElementById('storesList');
+            if (!stores) {
+                console.log('No stores found in the database');
+                return;
+            }
+            storesList.innerHTML = ''; // Clear previous list
+            for (let storeKey in stores) {
+                const store = stores[storeKey];
+                const storeItem = document.createElement('li');
+                storeItem.className = 'list-group-item';
+                storeItem.textContent = `${store.name} - ${store.location}`;
+                storeItem.addEventListener('click', () => {
+                    // Store the menu items for the selected store in localStorage
+                    localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                    localStorage.setItem('storeDetails', JSON.stringify(store));
+                    // Navigate to the next page with store details and menu items
+                    window.location.href = 'menu.html';
+                });
+                storesList.appendChild(storeItem);
+            }
+        }, error => {
+            console.error('Error fetching stores:', error);
         });
-        storesList.appendChild(storeItem);
+
+
+        }
     }
-}, error => {
-    console.error('Error fetching stores:', error);
-});
-
-}
-
-}
-
   </script>
   </body>
   </html>

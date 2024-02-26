@@ -204,8 +204,7 @@ if (!menuItems) {
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">${menuItem.name}</h5>
-                        <p class="card-text">${menuItem.description}</p>
-                        <p class="card-text">Price: $${menuItem.price}</p>
+                        <p class="card-text">Price: &#8377;${menuItem.price}</p>
                         <div class="quantity-input">
                             <button class="btn btn-outline-secondary decrease-quantity">-</button>
                             <span class="quantity-display">1</span>
@@ -246,13 +245,16 @@ $('.decrease-quantity').click(function() {
     if (!isNaN(price) && !isNaN(quantity)) {
         total += price * quantity;
         orderList.append(`
-            <li>
-                <div>${name}</div>
-                <div>Quantity: <span class="item-quantity">${quantity}</span></div>
-                <div>Price: $${(price * quantity).toFixed(2)}</div>
-                <button class="btn btn-danger btn-sm remove-item">Remove</button>
-            </li>
-        `);
+        <li class="list-group-item border-0">
+    <div class="row align-items-center">
+        <div class="col">${name}</div>
+        <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
+        <div class="col">&#8377; ${(price * quantity).toFixed(2)}</div>
+        <div class="col-auto">
+            <button class="btn btn-danger btn-sm remove-item"> X </button>
+        </div>
+    </div>
+</li>        `);
         totalPrice.text(`$${total.toFixed(2)}`);
         orderSummary.addClass('show');
         toggleSummary.addClass('show');

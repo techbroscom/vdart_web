@@ -251,7 +251,7 @@ $('.decrease-quantity').click(function() {
         <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
         <div class="col">&#8377; ${(price * quantity).toFixed(2)}</div>
         <div class="col-auto">
-            <button class="btn btn-danger btn-sm remove-item"> X </button>
+            <button class="btn btn-danger btn-sm remove-item">Remove</button>
         </div>
     </div>
 </li>        `);
@@ -262,16 +262,17 @@ $('.decrease-quantity').click(function() {
     $('.btn-success').prop('disabled', total <= 0);
 });
 
-        $(document).on('click', '.remove-item', function() {
-            const listItem = $(this).closest('li');
-            const price = parseFloat(listItem.find('div:nth-child(3)').text().replace('Price: $', ''));
-            if (!isNaN(price)) {
-                total -= price;
-                listItem.remove();
-                totalPrice.text(`$${total.toFixed(2)}`);
-            }
-            $('.btn-success').prop('disabled', total <= 0);
-        });
+$(document).on('click', '.remove-item', function() {
+    const listItem = $(this).closest('li');
+    const priceString = listItem.find('div:nth-child(3)').text().replace('₹ ', '');
+    const price = parseFloat(priceString.replace(',', ''));
+    if (!isNaN(price)) {
+        total -= price;
+        listItem.remove();
+        totalPrice.text(`₹ ${total.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`);
+    }
+    $('.btn-success').prop('disabled', total <= 0);
+});
 
         function generateTransactionId() {
     const currentDateTime = new Date();

@@ -72,9 +72,6 @@
 
         .card {
     width: 100%;
-    max-width: 500px;
-    height: 300px;
-    color: #fff;
     cursor: pointer;
     perspective: 1000px;
     margin: 0 auto; /* Center the card */
@@ -344,32 +341,38 @@ if (!userDetails) {
 
     // If there is no pending order, display the store list
 
-            const storesListRef = db.ref('stores');
-        storesListRef.on('value', snapshot => {
-            const stores = snapshot.val();
-            const storesList = document.getElementById('storesList');
-            if (!stores) {
-                console.log('No stores found in the database');
-                return;
-            }
-            storesList.innerHTML = ''; // Clear previous list
-            for (let storeKey in stores) {
-                const store = stores[storeKey];
-                const storeItem = document.createElement('li');
-                storeItem.className = 'list-group-item';
-                storeItem.textContent = `${store.name} - ${store.location}`;
-                storeItem.addEventListener('click', () => {
-                    // Store the menu items for the selected store in localStorage
-                    localStorage.setItem('menuItems', JSON.stringify(store.menu));
-                    localStorage.setItem('storeDetails', JSON.stringify(store));
-                    // Navigate to the next page with store details and menu items
-                    window.location.href = 'menu.html';
-                });
-                storesList.appendChild(storeItem);
-            }
-        }, error => {
-            console.error('Error fetching stores:', error);
+    const storesListRef = db.ref('stores');
+storesListRef.on('value', snapshot => {
+    const stores = snapshot.val();
+    const storesList = document.getElementById('storesList');
+    storesList.innerHTML = ''; // Clear previous list
+    if (!stores) {
+        console.log('No stores found in the database');
+        return;
+    }
+    for (let storeKey in stores) {
+        const store = stores[storeKey];
+        const storeItem = document.createElement('div');
+        storeItem.className = 'card mb-3';
+        storeItem.style.cursor = 'pointer';
+        storeItem.innerHTML = `
+            <div class="card-body">
+                <h5 class="card-title">${store.name}</h5>
+                <p class="card-text">${store.location}</p>
+            </div>`;
+        storeItem.addEventListener('click', () => {
+            // Store the menu items for the selected store in localStorage
+            localStorage.setItem('menuItems', JSON.stringify(store.menu));
+            localStorage.setItem('storeDetails', JSON.stringify(store));
+            // Navigate to the next page with store details and menu items
+            window.location.href = 'menu.html';
         });
+        storesList.appendChild(storeItem);
+    }
+}, error => {
+    console.error('Error fetching stores:', error);
+});
+
 
 
         }

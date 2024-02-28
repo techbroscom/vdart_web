@@ -16,13 +16,39 @@
         .container {
             margin: 50px auto;
         }
-        .user-details {
+        /* .user-details {
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-        }
+        } */
+        .user-details {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.user-details h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.user-details h4 {
+    color: #666;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.user-details h5 {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
         .store-list {
             background-color: #fff;
             padding: 20px;
@@ -183,12 +209,14 @@
 
     <nav class="navbar navbar-dark bg-primary center">
         <span class="navbar-brand mb-0 h1">VDart Cafe Wallets</span>
+        <button id="logoutButton" class="btn btn-outline-light">Logout</button>
     </nav>
 
 <div class="container">
     <!-- User Details -->
     <div class="user-details">
         <h2>Welcome, <span id="userName"></span>!</h2>
+        <h4>Id: <span id="userId"></span></h4>
         <h4>Your Balance: <span id="userBalance"></span></h4>
         <h5>Message: <span id="userMessage"></span></h4>
     </div>
@@ -275,6 +303,17 @@
       // Reference to the Firebase database
       const db = firebase.database();
 
+      // Logout button event listener
+const logoutButton = document.getElementById('logoutButton');
+logoutButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to logout?')) {
+        // Clear user details from localStorage
+        localStorage.removeItem('userDetails');
+        // Redirect to the login page
+        window.location.href = 'index.html';
+    }
+});
+
       // Display user details
 const userDetails = JSON.parse(localStorage.getItem('userDetails'));
 if (!userDetails) {
@@ -283,6 +322,7 @@ if (!userDetails) {
     document.getElementById('userName').innerText = userDetails.userName;
     document.getElementById('userBalance').innerText = userDetails.balance;
     document.getElementById('userMessage').innerText = userDetails.message;
+    document.getElementById('userId').innerText = userDetails.id;
 
     if (userDetails.isOrderPending) {
 

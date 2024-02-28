@@ -394,10 +394,14 @@ const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
     };
 
     $('#order-list li').each(function() {
-    const itemName = $(this).find('div:nth-child(1)').text();
+    // const itemName = $(this).find('div:nth-child(1)').text();
+    const itemText = $(this).find('div:nth-child(1)').text().trim();
+    const itemName = itemText.split(' Nos: ')[0];
     const quantity = parseInt($(this).find('div:nth-child(2)').text().split(': ')[1]);
     const priceText = $(this).find('div:nth-child(3)').text();
-    const priceMatch = priceText.match(/Price: \$([0-9.]+)/);
+    // const priceMatch = priceText.match(/Price: \$([0-9.]+)/);
+    const priceMatch = priceText.match(/₹ ([0-9.]+)/);
+
     if (priceMatch && priceMatch.length > 1) {
         const price = parseFloat(priceMatch[1]);
         if (!isNaN(price)) {
@@ -414,6 +418,7 @@ const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
         console.error('Price not found for item: ' + itemName);
     }
 });
+
 
     // Push the transaction to the Firebase database
     const transactionsRef = database.ref('transactions');

@@ -406,7 +406,6 @@ if (!userDetails) {
             pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
                 `<div>${item.name} (Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)})</div>`
             ).join('');
-
             pendingTransactionTotal.textContent = `$${pendingTran.tCoins.toFixed(2)}`;
 
             document.getElementById('pendingTransaction').style.display = 'block';

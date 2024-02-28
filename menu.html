@@ -68,6 +68,11 @@
 </head>
 <body>
 
+    <nav class="navbar navbar-dark bg-primary center">
+        <span class="navbar-brand mb-0 h1">VDart Cafe Wallets</span>
+        <button id="backToHomeButton" class="btn btn-outline-light">Back</button>
+    </nav>
+
 <div class="container">
     <h2 class="text-center">Menu</h2>
     <div class="row" id="menuItems">
@@ -396,6 +401,13 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
         }
     };
 });
+
+      // Logout button event listener
+      const backButton = document.getElementById('backToHomeButton');
+      backButton.addEventListener('click', () => {
+        // Redirect to the login page
+        window.location.href = 'employee_screen.html';
+        });
 </script>
 </body>
 </html>

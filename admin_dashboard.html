@@ -9,99 +9,67 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
 
-.sidebar {
-    height: 100vh;
-    width: 250px;
-    position: fixed;
-    top: 0;
-    left: 0; /* Updated */
-    background-color: #333;
-    padding-top: 20px;
-    z-index: 1;
-    transition: left 0.3s;
-}
+        .sidebar {
+            height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            background-color: #333;
+            padding-top: 20px;
+            z-index: 1;
+            transition: left 0.3s;
+        }
 
-.sidebar a {
-    padding: 10px 15px;
-    text-decoration: none;
-    font-size: 18px;
-    color: white;
-    display: block;
-}
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+        }
 
-.sidebar a.active {
-    background-color: #555;
-}
+        .sidebar a.active {
+            background-color: #555;
+        }
 
-.sidebar a:hover {
-    background-color: #555;
-}
+        .sidebar a:hover {
+            background-color: #555;
+        }
 
-.content {
-    margin-left: 250px;
-    padding: 20px;
-}
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
 
-.menu-icon {
-    display: none; /* Hide the menu icon in desktop view */
-}
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                left: -250px;
+            }
 
-@media screen and (max-width: 768px) {
-    .sidebar {
-        left: -250px;
-    }
+            .sidebar.show {
+                left: 0;
+            }
 
-    .sidebar.show {
-        left: 0;
-    }
-
-    .menu-icon {
-        display: block;
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 2;
-        font-size: 20px;
-        background-color: #333;
-        color: white;
-        border: none;
-        cursor: pointer;
-    }
-
-    .content {
-        margin-left: 0;
-    }
-
-    /* style for config */
-
-/* Add these styles to your existing CSS */
-#locationsList {
-    list-style-type: none;
-    padding: 0;
-}
-
-#locationsList li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 5px;
-}
-
-#locationsList li input {
-    flex: 1;
-    margin-right: 5px;
-}
-
-#locationsList li button {
-    margin-left: 5px;
-}
-}
+            .menu-icon {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 2;
+                font-size: 20px;
+                background-color: #333;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+        }
     </style>
 </head>
 
@@ -153,7 +121,7 @@
             <h2>Configuration</h2>
             <div class="mb-3">
                 <label for="coinsLimit">Coins Limit:</label>
-                <input type="text" id="coinsLimit">
+                <input type="text" id="coinsLimit" placeholder="Enter Coins Limit">
                 <button onclick="updateCoinsLimit()">Update Coins Limit</button>
             </div>
             <div class="mb-3">
@@ -239,11 +207,6 @@
             } else if (id === 'admin') {
                 showAdminData();
             }
-
-            // Close the sidebar on mobile view
-    if (window.innerWidth <= 768) {
-        closeSidebar();
-    }
         }
 
         // Show the first content by default
@@ -454,8 +417,7 @@ configRef.once('value', function(snapshot) {
     coinsLimit = config.coinsLimit;
     locations = Object.entries(config.locations); // Convert locations object to array of key-value pairs
     userTypes = Object.values(config.userType);
-    document.getElementById('coinsLimit').value = coinsLimit;
-
+    document.getElementById('coinsLimit').textContent = coinsLimit;
 
     // Display locations
     var locationsList = document.getElementById('locationsList');
@@ -538,11 +500,6 @@ function addUserType() {
     if (newUserType) {
         database.ref('config/userType').push(newUserType);
     }
-}
-
-function closeSidebar() {
-    var sidebar = document.querySelector('.sidebar');
-    sidebar.classList.remove('show');
 }
 
 

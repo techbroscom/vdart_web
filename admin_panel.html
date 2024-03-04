@@ -145,8 +145,24 @@
         </div>
 
         <div id="credit" style="display:none;">
-            <h2>Credit</h2>
-            <p>This is the Logout content.</p>
+            <h2>Credit Coins</h2>
+            <form id="creditForm">
+                <div class="form-group">
+                    <label for="locationSelect">Location:</label>
+                    <select class="form-control" id="creditLocationSelect" name="location">
+                        <option value="">Select Location</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="coinsInput">Coins:</label>
+                    <input type="number" class="form-control" id="coinsInput" required>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="addWithExistingBalance">
+                    <label class="form-check-label" for="addWithExistingBalance">Add with existing balance</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Credit Coins</button>
+            </form>
         </div>
 
         <div id="config" style="display:none;">
@@ -154,68 +170,95 @@
             <div class="mb-3">
                 <label for="coinsLimit">Coins Limit:</label>
                 <input type="text" id="coinsLimit">
-                <button onclick="updateCoinsLimit()">Update Coins Limit</button>
+                <button onclick="updateCoinsLimit()" class="btn btn-primary">Update Coins Limit</button>
             </div>
             <div class="mb-3">
                 <h3>Locations</h3>
                 <ul id="locationsList"></ul>
-                <button onclick="addLocation()">Add Location</button>
+                <button onclick="addLocation()" class="btn btn-primary">Add Location</button>
             </div>
             <div class="mb-3">
                 <h3>User Types</h3>
                 <ul id="userTypesList"></ul>
-                <button onclick="addUserType()">Add User Type</button>
+                <button onclick="addUserType()" class="btn btn-primary">Add User Type</button>
             </div>
         </div>
         
         <div id="createUser" style="display:none;">
-    <h2>Create New User</h2>
-    <form id="createUserForm" onsubmit="return createUser()" class="needs-validation" novalidate>
-        <div class="mb-3">
-            <label for="newUserId" class="form-label">User ID:</label>
-            <input type="text" class="form-control" id="newUserId" name="newUserId" required>
-            <div class="invalid-feedback">
-                Please enter a User ID.
-            </div>
+            <h2>Create New User</h2>
+            <form id="createUserForm" class="needs-validation" novalidate onsubmit="handleSubmitCreateUsers(event)">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="newUserId" class="form-label">User ID:</label>
+                            <input type="text" class="form-control" id="newUserId" name="newUserId" required>
+                            <div class="invalid-feedback">
+                                Please enter a User ID.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="newUserName" class="form-label">User Name:</label>
+                            <input type="text" class="form-control" id="newUserName" name="newUserName" required>
+                            <div class="invalid-feedback">
+                                Please enter a User Name.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="newUserPassword" class="form-label">Password:</label>
+                            <input type="text" class="form-control" id="newUserPassword" name="newUserPassword" required readonly>
+                            <div class="invalid-feedback">
+                                Please enter a Password.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="newUserLocation" class="form-label">Location:</label>
+                            <select class="form-control" id="newUserLocation" name="newUserLocation" required>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a Location.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="newUserType" class="form-label">User Type:</label>
+                            <select class="form-control" id="newUserType" name="newUserType" required>
+                                <option value="">Select User Type</option>
+                                <option value="Admin">Admin</option>
+                                <option value="User">User</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select a User Type.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addUserToList()">Add User</button>
+                <button type="submit" class="btn btn-success">Creates Users</button>
+            </form>
+            
+            <table id="userList" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">User ID</th>
+                        <th scope="col">User Name</th>
+                        <th scope="col">Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- User list rows will be added here dynamically -->
+                </tbody>
+            </table>
         </div>
-        <div class="mb-3">
-            <label for="newUserName" class="form-label">User Name:</label>
-            <input type="text" class="form-control" id="newUserName" name="newUserName" required>
-            <div class="invalid-feedback">
-                Please enter a User Name.
-            </div>
-        </div>
-        <div class="mb-3">
-            <label for="newUserBalance" class="form-label">Balance:</label>
-            <input type="number" class="form-control" id="newUserBalance" name="newUserBalance" required>
-            <div class="invalid-feedback">
-                Please enter a valid Balance.
-            </div>
-        </div>
-        <div class="mb-3">
-            <label for="newUserPassword" class="form-label">Password:</label>
-            <input type="password" class="form-control" id="newUserPassword" name="newUserPassword" required>
-            <div class="invalid-feedback">
-                Please enter a Password.
-            </div>
-        </div>
-        <div class="mb-3">
-            <label for="newUserLocation" class="form-label">Location:</label>
-            <input type="text" class="form-control" id="newUserLocation" name="newUserLocation" required>
-            <div class="invalid-feedback">
-                Please enter a Location.
-            </div>
-        </div>
-        <div class="mb-3">
-            <label for="newUserStatus" class="form-label">Status:</label>
-            <input type="text" class="form-control" id="newUserStatus" name="newUserStatus" required>
-            <div class="invalid-feedback">
-                Please enter a Status.
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary">Create User</button>
-    </form>
-        </div>
+        
 
     </div>
 
@@ -238,6 +281,8 @@
                 showStoreData();
             } else if (id === 'admin') {
                 showAdminData();
+            } else if (id === 'credit') {
+                populateLocationDropdown(); // Populate location dropdown when Credit Coins section is shown
             }
 
             // Close the sidebar on mobile view
@@ -292,8 +337,6 @@ function searchUser(event) {
         }
     });
 }
-
-
 
 function updateUserDetails() {
     var userId = document.getElementById('searchInput').value;
@@ -466,11 +509,9 @@ configRef.once('value', function(snapshot) {
     userTypesList.innerHTML = userTypes.map(userType => `<li>${userType}</li>`).join('');
 });
 
-
-
 function updateLocationsList(locationsList, locations) {
     locationsList.innerHTML = locations.map(location => {
-        return `<li><input type="text" value="${location[1]}" onchange="updateLocation('${location[0]}', this.value)"> <button onclick="removeLocation('${location[0]}')">Remove</button></li>`;
+        return `<li><input type="text" value="${location[1]}" onchange="updateLocation('${location[0]}', this.value)"> <button class="btn btn-primary" onclick="removeLocation('${location[0]}')">Remove</button></li>`;
     }).join('');
 }
 
@@ -544,6 +585,123 @@ function closeSidebar() {
     var sidebar = document.querySelector('.sidebar');
     sidebar.classList.remove('show');
 }
+
+function populateLocationDropdown() {
+    var configRef = database.ref('config');
+    configRef.once('value', function(snapshot) {
+        var config = snapshot.val();
+        var locations = config.locations;
+        var creditLocationSelect = document.getElementById('creditLocationSelect');
+        creditLocationSelect.innerHTML = '';
+        for (var locationId in locations) {
+            var locationName = locations[locationId];
+            var option = document.createElement('option');
+            option.value = locationId;
+            option.textContent = locationName;
+            creditLocationSelect.appendChild(option);
+        }
+    });
+}
+
+// Fetch locations from Firebase and populate the dropdown
+var locationsSelect = document.getElementById('newUserLocation');
+
+firebase.database().ref('config/locations').once('value', function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+        var key = childSnapshot.key;
+        var value = childSnapshot.val();
+        var option = document.createElement('option');
+        option.value = key;
+        option.text = value;
+        locationsSelect.appendChild(option);
+    });
+});
+
+document.getElementById('creditForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var locationSelect = document.getElementById('creditLocationSelect');
+        var location = locationSelect.options[locationSelect.selectedIndex].text;
+        var coins = parseInt(document.getElementById('coinsInput').value);
+        var addWithExistingBalance = document.getElementById('addWithExistingBalance').checked;
+
+        if (!location || isNaN(coins) || coins <= 0) {
+            alert('Please select a location and enter a valid number of coins.');
+            return;
+        }
+
+        var userDetailsRef = database.ref('userDetails');
+        userDetailsRef.once('value', function(snapshot) {
+            snapshot.forEach(function(childSnapshot) {
+                var childKey = childSnapshot.key;
+                var childData = childSnapshot.val();
+                if (childData.location === location) {
+                    var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
+                    userDetailsRef.child(childKey).update({ balance: newBalance });
+                }
+            });
+            alert('Coins credited successfully.');
+            document.getElementById('creditForm').reset();
+        });
+    });
+
+    var userList = [];
+
+// Function to add user to the list
+function addUserToList() {
+    var table = document.getElementById('userList').getElementsByTagName('tbody')[0];
+    var newRow = table.insertRow();
+
+    var userIdCell = newRow.insertCell();
+    var userNameCell = newRow.insertCell();
+    var locationCell = newRow.insertCell();
+
+    var userId = document.getElementById('newUserId').value;
+    var userName = document.getElementById('newUserName').value;
+    var locationSelect = document.getElementById('newUserLocation');
+    var location = locationSelect.options[locationSelect.selectedIndex].text;
+    userIdCell.textContent = userId;
+    userNameCell.textContent =  userName;
+    // locationCell.textContent = document.getElementById('newUserLocation').value;
+    locationCell.textContent = location;
+
+    userList.push({ userId: userId, userName: userName, location: location });
+
+    document.getElementById('newUserId').value = '';
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserLocation').value = '';
+}
+
+function handleSubmitCreateUsers(event) {
+  event.preventDefault();
+
+  var db = firebase.database();
+  // Iterate over the userList array and create each user in Firebase
+  userList.forEach(function(user) {
+    db.ref('usersDetails/' + user.userId).set({
+      userName: user.userName,
+      location: user.location,
+      userType: 'Customer' // Example, you can set the user type as needed
+    }).then(function() {
+      console.log('User created successfully:', user.userId);
+    }).catch(function(error) {
+      console.error('Error creating user:', user.userId, error);
+    });
+  });
+
+  // Clear the userList array
+  userList = [];
+  clearUserList();
+}
+
+function clearUserList() {
+    var table = document.getElementById("userList");
+    var rowCount = table.rows.length;
+    for (var i = rowCount - 1; i > 0; i--) {
+        table.deleteRow(i);
+    }
+}
+
+
 
 
 </script>

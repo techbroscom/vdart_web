@@ -22,6 +22,37 @@
   </style>
 </head>
 <body>
+
+  <div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="changePasswordForm">
+            <div class="form-group">
+              <label for="currentPassword">Current Password:</label>
+              <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+            </div>
+            <div class="form-group">
+              <label for="newPassword">New Password:</label>
+              <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+            </div>
+            <div class="form-group">
+              <label for="confirmNewPassword">Confirm New Password:</label>
+              <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <div class="container">
     <div class="login-container">
         <img src="assets/logo.png" class="img-fluid mb-4" alt="Login Image">
@@ -38,6 +69,29 @@
             <button type="submit" class="btn btn-primary btn-block">Login</button>
         </form>
     </div>
+</div>
+
+<!-- Modal for resetting password -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resetPasswordModalLabel">Create New Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="resetPasswordForm">
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" class="form-control" id="newPassword" placeholder="Enter your new password">
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
   <!-- Firebase -->
@@ -72,52 +126,93 @@ const firebaseConfig = {
 
     // Login form
     const loginForm = document.getElementById('loginForm');
-loginForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
-  // Check if user exists in the database
-  database.ref('userDetails/' + username).once('value')
-    .then((snapshot) => {
-      const userData = snapshot.val();
-      if (userData && userData.password === password) {
-        // Successful login
-        console.log('Login successful');
+      // Check if user exists in the database
+      database.ref('userDetails/' + username).once('value')
+        .then((snapshot) => {
+          const userData = snapshot.val();
+          if (userData) {
+            if (userData.password === username) {
+              // Password is same as user ID, show modal to create new password
+              $('#resetPasswordModal').modal('show');
 
-        // Store user details in localStorage
-      localStorage.setItem('userDetails', JSON.stringify(userData));
+              // Handle form submission for resetting password
+              const resetPasswordForm = document.getElementById('resetPasswordForm');
+              resetPasswordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newPassword = document.getElementById('newPassword').value;
+                // Update password in database
+                database.ref('userDetails/' + username).update({ password: newPassword })
+                  .then(() => {
+                    console.log('Password updated successfully');
 
-        // Redirect based on user type
-        if (userData.userType === 'Employee') {
-          window.location.href = 'employee_screen.html';
-        } else if (userData.userType === 'Store') {
-          window.location.href = 'store_screen.html';
-        } else if (userData.userType === 'Admin') {
-          window.location.href = 'admin_panel.html';
-        } else {
-          // Handle other user types
-          console.log('Unknown user type');
-        }
-      } else {
-        // Invalid credentials
-        console.log('Invalid username or password');
-        document.getElementById('errorMessage').style.display = 'block'; // Show error message
-      }
-    })
-    .catch((error) => {
-      console.error('Error fetching user data:', error);
+                    // Store user details in localStorage
+                    localStorage.setItem('userDetails', JSON.stringify(userData));
+
+                    // Redirect user to appropriate page based on user type
+                    if (userData.userType === 'Employee') {
+                      window.location.href = 'employee_screen.html';
+                    } else if (userData.userType === 'Store') {
+                      window.location.href = 'store_screen.html';
+                    } else if (userData.userType === 'Admin') {
+                      window.location.href = 'admin_panel.html';
+                    } else {
+                      console.log('Unknown user type');
+                    }
+                  })
+                  .catch((error) => {
+                    console.error('Error updating password:', error);
+                  });
+              });
+            } else {
+              // Password is not the same as user ID, handle login
+              if (userData.password === password) {
+                // Successful login
+                console.log('Login successful');
+
+                // Store user details in localStorage
+                localStorage.setItem('userDetails', JSON.stringify(userData));
+
+                // Redirect based on user type
+                if (userData.userType === 'Employee') {
+                  window.location.href = 'employee_screen.html';
+                } else if (userData.userType === 'Store') {
+                  window.location.href = 'store_screen.html';
+                } else if (userData.userType === 'Admin') {
+                  window.location.href = 'admin_panel.html';
+                } else {
+                  // Handle other user types
+                  console.log('Unknown user type');
+                }
+              } else {
+                // Invalid credentials
+                console.log('Invalid username or password');
+                document.getElementById('errorMessage').style.display = 'block'; // Show error message
+              }
+            }
+          } else {
+            // User does not exist
+            console.log('User does not exist');
+            document.getElementById('errorMessage').style.display = 'block'; // Show error message
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching user data:', error);
+        });
     });
-});
 
-// Clear local storage on page load
-window.onload = function() {
-    localStorage.clear();
-};
+    // Clear local storage on page load
+    window.onload = function() {
+      localStorage.clear();
+    };
   </script>
 
-<div id="errorMessage" class="alert alert-danger" style="display: none;">
-  Incorrect username or password.
-</div>
+  <div id="errorMessage" class="alert alert-danger" style="display: none;">
+    Incorrect username or password.
+  </div>
 </body>
 </html>

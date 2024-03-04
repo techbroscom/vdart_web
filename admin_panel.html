@@ -8,7 +8,7 @@
     <title>Admin Panel</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        body {
+    body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -135,10 +135,12 @@
             <h2>Employee Data</h2>
             <p>This is the Profile content.</p>
         </div>
+
         <div id="store" style="display:none;">
             <h2>Store Data</h2>
             <p>This is the Settings content.</p>
         </div>
+
         <div id="admin" style="display:none;">
             <h2>Admin Data</h2>
             <p>This is the Settings content.</p>
@@ -191,7 +193,7 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="newUserId" class="form-label">User ID:</label>
-                            <input type="text" class="form-control" id="newUserId" name="newUserId" required>
+                            <input type="text" class="form-control" id="newUserId" name="newUserId" oninput="updatePassword()" required>
                             <div class="invalid-feedback">
                                 Please enter a User ID.
                             </div>
@@ -231,9 +233,10 @@
                         <div class="mb-3">
                             <label for="newUserType" class="form-label">User Type:</label>
                             <select class="form-control" id="newUserType" name="newUserType" required>
-                                <option value="">Select User Type</option>
+                                <option value="Employee">Employee</option>
+                                <option value="Store">Store</option>
+                                <option value="Intern">Intern</option>
                                 <option value="Admin">Admin</option>
-                                <option value="User">User</option>
                             </select>
                             <div class="invalid-feedback">
                                 Please select a User Type.
@@ -242,7 +245,7 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-primary" onclick="addUserToList()">Add User</button>
-                <button type="submit" class="btn btn-success">Creates Users</button>
+                <button type="submit" class="btn btn-success">Create Users</button>
             </form>
             
             <table id="userList" class="table">
@@ -304,9 +307,8 @@ const firebaseConfig = {
   appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
   measurementId: "G-NVXLVD13D1"
 };
-
-        firebase.initializeApp(firebaseConfig);
-        var database = firebase.database();
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();        
 
 function searchUser(event) {
     event.preventDefault();
@@ -426,41 +428,12 @@ function showAdminData() {
     });
 }
 
-
 function toggleSidebar() {
     var sidebar = document.querySelector('.sidebar');
     sidebar.classList.toggle('show');
 }
 
 document.getElementById('searchForm').addEventListener('submit', searchUser);
-
-document.getElementById('createUserForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    var newUserId = document.getElementById('newUserId').value;
-    var newUserName = document.getElementById('newUserName').value;
-    var newUserBalance = document.getElementById('newUserBalance').value;
-    var newUserLocation = document.getElementById('newUserLocation').value;
-    var newUserStatus = document.getElementById('newUserStatus').value;
-
-    var newUserDetails = {
-        id: newUserId,
-        userName: newUserName,
-        balance: parseInt(newUserBalance),
-        location: newUserLocation,
-        status: newUserStatus,
-        userType: 'Customer' // Assuming new users are customers
-    };
-
-    var newUserRef = database.ref('userDetails').child(newUserId);
-    newUserRef.set(newUserDetails, function(error) {
-        if (error) {
-            alert('Failed to create user');
-        } else {
-            alert('User created successfully');
-            document.getElementById('createUserForm').reset();
-        }
-    });
-});
 
 // Get the input element and the button element
 var coinsLimitInput = document.getElementById('coinsLimit');
@@ -659,16 +632,19 @@ function addUserToList() {
     var userName = document.getElementById('newUserName').value;
     var locationSelect = document.getElementById('newUserLocation');
     var location = locationSelect.options[locationSelect.selectedIndex].text;
+    var userType = document.getElementById('newUserType').value;
     userIdCell.textContent = userId;
     userNameCell.textContent =  userName;
     // locationCell.textContent = document.getElementById('newUserLocation').value;
     locationCell.textContent = location;
 
-    userList.push({ userId: userId, userName: userName, location: location });
+    userList.push({ userId: userId, userName: userName, location: location, password: userId, status: "Active", userType: userType });
 
     document.getElementById('newUserId').value = '';
     document.getElementById('newUserName').value = '';
     document.getElementById('newUserLocation').value = '';
+    document.getElementById('newUserPassword').value = '';
+
 }
 
 function handleSubmitCreateUsers(event) {
@@ -677,10 +653,14 @@ function handleSubmitCreateUsers(event) {
   var db = firebase.database();
   // Iterate over the userList array and create each user in Firebase
   userList.forEach(function(user) {
-    db.ref('usersDetails/' + user.userId).set({
+    db.ref('userDetails/' + user.userId).set({
       userName: user.userName,
       location: user.location,
-      userType: 'Customer' // Example, you can set the user type as needed
+      password: user.password,
+      id: user.userId,
+      userType: user.userType, // Example, you can set the user type as needed
+      balance: 0,
+      status: user.status
     }).then(function() {
       console.log('User created successfully:', user.userId);
     }).catch(function(error) {
@@ -701,8 +681,10 @@ function clearUserList() {
     }
 }
 
-
-
+function updatePassword() {
+    var userId = document.getElementById('newUserId').value;
+    document.getElementById('newUserPassword').value = userId;
+}
 
 </script>
 </body>

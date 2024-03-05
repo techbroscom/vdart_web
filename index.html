@@ -191,13 +191,15 @@ const firebaseConfig = {
               } else {
                 // Invalid credentials
                 console.log('Invalid username or password');
-                document.getElementById('errorMessage').style.display = 'block'; // Show error message
+                alert('Incorrect username or password.'); // Show alert message
+                // document.getElementById('errorMessage').style.display = 'block'; // Show error message
               }
             }
           } else {
             // User does not exist
             console.log('User does not exist');
-            document.getElementById('errorMessage').style.display = 'block'; // Show error message
+            alert('User does not exist.'); // Show alert message
+            // document.getElementById('errorMessage').style.display = 'block'; // Show error message
           }
         })
         .catch((error) => {

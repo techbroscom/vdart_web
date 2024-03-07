@@ -638,7 +638,7 @@ function addUserToList() {
     // locationCell.textContent = document.getElementById('newUserLocation').value;
     locationCell.textContent = location;
 
-    userList.push({ userId: userId, userName: userName, location: location, password: userId, status: "Active", userType: userType });
+    userList.push({ userId: userId, userName: userName, location: location, password: userId, status: true, userType: userType });
 
     document.getElementById('newUserId').value = '';
     document.getElementById('newUserName').value = '';

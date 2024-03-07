@@ -85,7 +85,7 @@
         <form id="resetPasswordForm">
           <div class="form-group">
             <label for="newPassword">New Password</label>
-            <input type="password" class="form-control" id="newPassword" placeholder="Enter your new password">
+            <input type="password" class="form-control" id="newPassword1" placeholder="Enter your new password">
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
@@ -136,15 +136,26 @@ const firebaseConfig = {
         .then((snapshot) => {
           const userData = snapshot.val();
           if (userData) {
-            if (userData.password === username) {
+            if (!userData.status){
+              // Invalid credentials
+              console.log('User not active');
+              alert('User Inactive. Please contact admin!'); // Show alert message
+            }
+            else if (userData.password === username) {
               // Password is same as user ID, show modal to create new password
               $('#resetPasswordModal').modal('show');
-
+              
               // Handle form submission for resetting password
               const resetPasswordForm = document.getElementById('resetPasswordForm');
               resetPasswordForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const newPassword = document.getElementById('newPassword').value;
+                const newPassword = document.getElementById('newPassword1').value;
+                  console.log('New Password:', newPassword);
+                  if (newPassword.trim() === "") {
+                    console.log('Please enter a new password');
+                    return;
+                  }
+                // const newPassword = document.getElementById('newPassword').value;
                 // Update password in database
                 database.ref('userDetails/' + username).update({ password: newPassword })
                   .then(() => {

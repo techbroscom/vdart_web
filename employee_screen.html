@@ -23,7 +23,7 @@
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
         } */
-        .user-details {
+        /* .user-details {
     background-color: #f8f9fa;
     padding: 20px;
     border-radius: 5px;
@@ -48,7 +48,35 @@
     color: #666;
     font-size: 16px;
     margin-bottom: 5px;
-}
+} */
+/* Update the styles as needed */
+.user-details {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .user-details h2 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .user-details h4 {
+        color: #666;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+
+    .user-details h5 {
+        color: #666;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
         .store-list {
             background-color: #fff;
             padding: 20px;
@@ -203,7 +231,7 @@
     transform: rotateY(-180deg);
 }
 
-/* feedback */
+/* feedback
 .feedback-container {
     background-color: #fff;
     padding: 20px;
@@ -226,12 +254,112 @@
 
 .feedback-container textarea {
     resize: vertical; /* Allow vertical resizing */
-}
+/* }
 
 .feedback-container button {
     margin-top: 10px;
-}
+} */ 
 
+/* Feedback Form Styling */
+.feedback-container {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .feedback-container h3 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .feedback-container form {
+        margin-top: 20px;
+    }
+
+    .feedback-container label {
+        font-weight: bold;
+        color: #333;
+    }
+
+    .feedback-container textarea {
+        resize: vertical; /* Allow vertical resizing */
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .feedback-container button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .feedback-container button:hover {
+        background-color: #0056b3;
+    }
+    .loading {
+            display: none; /* Hide the loading div by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            z-index: 1000; /* Ensure the loading div is above other elements */
+            animation: fadeIn 0.5s ease-in-out; /* Fade in animation */
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #333; /* Color of the loading spinner */
+            animation: spin 1s linear infinite; /* Spin animation */
+        }
+        .loading-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: fadeIn 2s linear infinite; /* Spin animation */
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -247,9 +375,10 @@
         <h2>Welcome, <span id="userName"></span>!</h2>
         <h4>Id: <span id="userId"></span></h4>
         <h4>Your Balance: <span id="userBalance"></span></h4>
+        <h4>Coins Utilization: <span id="userCoinsUtilization"></span></h4>
         <h5>Message: <span id="userMessage"></span></h4>
     </div>
-
+    
     <!-- <div>
         <div class="card">
             <div class="card-inner">
@@ -293,11 +422,20 @@
     </div> -->
     
 
+    <div class="loading" id="loading">
+        <!-- Replace 'logo.png' with the path to your logo image -->
+        <div class="loading-spinner"></div>
+    </div>
 
     <!-- Store List -->
     <div class="store-list">
         <h3>Stores List:</h3>
         <ul id="storesList"></ul>
+    </div>
+
+    <!-- Store List -->
+    <div id="limitReachedMsg" style="display: none; background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-top: 20px;">
+        <strong>Oops!</strong> You have reached the limit for the day.
     </div>
 
     <!-- Pending Transaction Details -->
@@ -343,6 +481,11 @@
       // Reference to the Firebase database
       const db = firebase.database();
 
+      const loadingDiv = document.getElementById('loading');
+loadingDiv.style.display = 'block';
+
+      
+
       // Logout button event listener
 const logoutButton = document.getElementById('logoutButton');
 logoutButton.addEventListener('click', () => {
@@ -363,16 +506,19 @@ if (!userDetails) {
     document.getElementById('userBalance').innerText = userDetails.balance;
     document.getElementById('userMessage').innerText = userDetails.message;
     document.getElementById('userId').innerText = userDetails.id;
-
+    document.getElementById('userCoinsUtilization').innerText = userDetails.coinsUtil;
+    
     if (userDetails.isOrderPending) {
 
-        document.querySelector('.store-list').style.display = 'none'; // Show the store list
+        document.querySelector('.store-list').style.display = 'none';
 
     // If there is a pending order, show the transaction details
     const pendingTranId = userDetails.pendingTransId;
     const pendingStoreId = userDetails.orderStore;
     const pendingTranRef = db.ref('transactions').child(pendingStoreId).child(pendingTranId);
     pendingTranRef.once('value', snapshot => {
+        document.getElementById('loading').style.display = 'none';
+
         const pendingTran = snapshot.val();
         if (pendingTran) {
             if(pendingTran.tStatus == "Delivered"){
@@ -415,6 +561,7 @@ if (!userDetails) {
         }
     });
 } else {
+    document.getElementById('loading').style.display = 'none';
     document.querySelector('.store-list').style.display = 'block'; // Show the store list
 
 
@@ -452,7 +599,20 @@ storesListRef.on('value', snapshot => {
     console.error('Error fetching stores:', error);
 });
 
-// Feedback form submission event listener
+        }
+
+        var coinsLimit;
+
+      var configRef = db.ref('config');
+        configRef.once('value', function(snapshot) {
+            var config = snapshot.val();
+            coinsLimit = config.coinsLimit;
+            if(userDetails.coinsUtil >= coinsLimit){
+            document.getElementById('limitReachedMsg').style.display = 'block';
+            document.querySelector('.store-list').style.display = 'none'; // Show the store list
+            } 
+        });
+        // Feedback form submission event listener
 const feedbackForm = document.getElementById('feedbackForm');
 feedbackForm.addEventListener('submit', (event) => {
     event.preventDefault(); // Prevent default form submission
@@ -475,9 +635,6 @@ feedbackForm.addEventListener('submit', (event) => {
         alert('An error occurred. Please try again.');
     });
 });
-
-
-        }
     }
   </script>
   </body>

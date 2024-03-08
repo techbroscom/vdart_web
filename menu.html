@@ -367,7 +367,6 @@ $(document).on('click', '.remove-item', function() {
 
     // Generate a transaction ID
     const transactionId = generateTransactionId();
-
     const currentDate = new Date();
 
 const day = String(currentDate.getDate()).padStart(2, '0');
@@ -426,8 +425,9 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
         .then(() => {
             // Deduct the amount from the user's balance
             const newBalance = userDetails.balance - total;
-
+            
     // Update the user's balance in the local storage
+    userDetails.lastTranDate = currentDate;
     userDetails.balance = newBalance;
     userDetails.isOrderPending = true;
     userDetails.pendingTransId = transactionId;    
@@ -436,6 +436,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
             database.ref('userDetails/' + userDetails.id).update({
                 balance: newBalance,
                 isOrderPending: true,
+                lastTranDate: currentDate,
                 pendingTransId: transactionId,
                 message: "Order is pending..."
             }).then(() => {

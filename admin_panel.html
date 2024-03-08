@@ -104,7 +104,14 @@
 }
     </style>
 </head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
+<script>
+            var adminData = [];
+            var empData = [];
+</script>
 <body>
     <button class="menu-icon" onclick="toggleSidebar()">☰</button>
 
@@ -132,8 +139,10 @@
         </div>
 
         <div id="employee" style="display:none;">
-            <h2>Employee Data</h2>
-            <p>This is the Profile content.</p>
+            <h2>Employee Data <button onclick="downloadDataExcel(empData, 'Employee_data')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
+            <div class="table-responsive">
+                <table id="employeeTable" class="table"></table>
+            </div>
         </div>
 
         <div id="store" style="display:none;">
@@ -142,9 +151,12 @@
         </div>
 
         <div id="admin" style="display:none;">
-            <h2>Admin Data</h2>
-            <p>This is the Settings content.</p>
+            <h2>Admin Data <button onclick="downloadDataExcel(adminData, 'Admin_data')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
+            <div class="table-responsive">
+                <table id="adminTable" class="table"></table>
+            </div>
         </div>
+        
 
         <div id="credit" style="display:none;">
             <h2>Credit Coins</h2>
@@ -264,6 +276,8 @@
         
 
     </div>
+    <script src="excelUtils.js"></script>
+
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -363,9 +377,10 @@ function showEmployeeData() {
     var userDetailsRef = database.ref('userDetails');
     userDetailsRef.once('value', function(snapshot) {
         var userDetails = snapshot.val();
-        var employeeTableHtml = '<h2>Employee Data</h2><div class="table-responsive"><table class="table">';
-        employeeTableHtml += '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
+
+        var employeeTableHtml = '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
         employeeTableHtml += '<tbody>';
+
         for (var userId in userDetails) {
             if (userDetails[userId].userType === 'Employee') {
                 employeeTableHtml += '<tr>';
@@ -375,12 +390,23 @@ function showEmployeeData() {
                 employeeTableHtml += '<td>' + userDetails[userId].location + '</td>';
                 employeeTableHtml += '<td>' + userDetails[userId].status + '</td>';
                 employeeTableHtml += '</tr>';
+
+                empData.push({
+                    'User ID': userDetails[userId].id,
+                    'User Name': userDetails[userId].userName,
+                    'Balance': userDetails[userId].balance,
+                    'Location': userDetails[userId].location,
+                    'Status': userDetails[userId].status
+                });
             }
         }
+
         employeeTableHtml += '</tbody></table></div>';
-        document.getElementById('employee').innerHTML = employeeTableHtml;
+        document.getElementById('employeeTable').innerHTML = employeeTableHtml;
+
     });
 }
+
 
 function showStoreData() {
     var userDetailsRef = database.ref('userDetails');
@@ -398,6 +424,14 @@ function showStoreData() {
                 employeeTableHtml += '<td>' + userDetails[userId].location + '</td>';
                 employeeTableHtml += '<td>' + userDetails[userId].status + '</td>';
                 employeeTableHtml += '</tr>';
+
+                empData.push({
+                    'User ID': userDetails[userId].id,
+                    'User Name': userDetails[userId].userName,
+                    'Balance': userDetails[userId].balance,
+                    'Location': userDetails[userId].location,
+                    'Status': userDetails[userId].status
+                });
             }
         }
         employeeTableHtml += '</tbody></table></div>';
@@ -409,9 +443,9 @@ function showAdminData() {
     var userDetailsRef = database.ref('userDetails');
     userDetailsRef.once('value', function(snapshot) {
         var userDetails = snapshot.val();
-        var employeeTableHtml = '<h2>Admin Data</h2><div class="table-responsive"><table class="table">';
-        employeeTableHtml += '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
+        var employeeTableHtml = '<thead><tr><th>User ID</th><th>User Name</th><th>Balance</th><th>Location</th><th>Status</th></tr></thead>';
         employeeTableHtml += '<tbody>';
+
         for (var userId in userDetails) {
             if (userDetails[userId].userType === 'Admin') {
                 employeeTableHtml += '<tr>';
@@ -421,12 +455,48 @@ function showAdminData() {
                 employeeTableHtml += '<td>' + userDetails[userId].location + '</td>';
                 employeeTableHtml += '<td>' + userDetails[userId].status + '</td>';
                 employeeTableHtml += '</tr>';
+
+                adminData.push({
+                    'User ID': userDetails[userId].id,
+                    'User Name': userDetails[userId].userName,
+                    'Balance': userDetails[userId].balance,
+                    'Location': userDetails[userId].location,
+                    'Status': userDetails[userId].status
+                });
             }
         }
-        employeeTableHtml += '</tbody></table></div>';
-        document.getElementById('admin').innerHTML = employeeTableHtml;
+
+        employeeTableHtml += '</tbody>';
+        document.getElementById('adminTable').innerHTML = employeeTableHtml;
+        document.getElementById('admin').style.display = 'block';
     });
 }
+
+function downloadDataExcel(xlData, xlFileName) {
+    // Check if xlData is not empty
+    if (xlData.length === 0) {
+        alert('Data is empty. Unable to download Excel file.');
+        return;
+    }
+
+    // Ask for confirmation to download Excel file
+    if (!confirm('Do you want to download the Excel file?')) {
+        return;
+    }
+
+    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+    const fileExtension = '.xlsx';
+    const fileName = xlFileName + "_" + generateTransactionId();
+
+    const ws = XLSX.utils.json_to_sheet(xlData);
+    const wb = { Sheets: { 'data': ws }, SheetNames: ['data'] };
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: fileType });
+    saveAs(data, fileName + fileExtension);
+}
+
+
+
 
 function toggleSidebar() {
     var sidebar = document.querySelector('.sidebar');
@@ -684,6 +754,17 @@ function clearUserList() {
 function updatePassword() {
     var userId = document.getElementById('newUserId').value;
     document.getElementById('newUserPassword').value = userId;
+}
+
+function generateTransactionId() {
+    const currentDateTime = new Date();
+    const year = currentDateTime.getFullYear();
+    const month = ('0' + (currentDateTime.getMonth() + 1)).slice(-2); // Months are zero-based
+    const date = ('0' + currentDateTime.getDate()).slice(-2);
+    const hours = ('0' + currentDateTime.getHours()).slice(-2);
+    const minutes = ('0' + currentDateTime.getMinutes()).slice(-2);
+    const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
+    return `${year}${month}${date}${hours}${minutes}${seconds}`;
 }
 
 </script>

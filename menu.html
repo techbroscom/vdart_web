@@ -141,51 +141,6 @@
     <h2 class="text-center">Menu</h2>
     <div class="row" id="menuItems">
         <!-- Food Items -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Food Item 1</h5>
-                    <p class="card-text">Description of food item 1.</p>
-                    <p class="card-text">Price: $10</p>
-                    <div class="quantity-input">
-                        <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                        <span class="quantity-display">1</span>
-                        <button class="btn btn-outline-secondary increase-quantity">+</button>
-                    </div>
-                    <button class="btn btn-primary add-to-cart" data-name="Food Item 1" data-price="10">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Food Item 2</h5>
-                    <p class="card-text">Description of food item 1.</p>
-                    <p class="card-text">Price: $20</p>
-                    <div class="quantity-input">
-                        <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                        <span class="quantity-display">1</span>
-                        <button class="btn btn-outline-secondary increase-quantity">+</button>
-                    </div>
-                    <button class="btn btn-primary add-to-cart" data-name="Food Item 2" data-price="20">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Food Item 3</h5>
-                    <p class="card-text">Description of food item 1.</p>
-                    <p class="card-text">Price: $30</p>
-                    <div class="quantity-input">
-                        <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                        <span class="quantity-display">1</span>
-                        <button class="btn btn-outline-secondary increase-quantity">+</button>
-                    </div>
-                    <button class="btn btn-primary add-to-cart" data-name="Food Item 3" data-price="30">Add to Cart</button>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -251,6 +206,7 @@
 
         // Display user details
 const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+const config = JSON.parse(localStorage.getItem('config'))
 if (!userDetails) {
     console.log('User details not found');
 } else {
@@ -261,6 +217,34 @@ if (!userDetails) {
 
 
         // Display menu items
+// const menuItems = JSON.parse(localStorage.getItem('menuItems'));
+// if (!menuItems) {
+//     console.log('Menu items not found');
+// } else {
+//     const menuContainer = $('#menuItems');
+//     menuContainer.empty(); // Clear previous menu items
+//     Object.values(menuItems).forEach(menuItem => {
+//         const menuItemElement = `
+//             <div class="col-md-4">
+//                 <div class="card">
+//                     <div class="card-body">
+//                         <h5 class="card-title">${menuItem.name}</h5>
+//                         <p class="card-text">Price: &#8377;${menuItem.price}</p>
+//                         <div class="quantity-input">
+//                             <button class="btn btn-outline-secondary decrease-quantity">-</button>
+//                             <span class="quantity-display">1</span>
+//                             <button class="btn btn-outline-secondary increase-quantity">+</button>
+//                         </div>
+//                         <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}">Add to Cart</button>
+//                     </div>
+//                 </div>
+//             </div>
+//         `;
+//         menuContainer.append(menuItemElement);
+//     });
+// }
+
+// Display menu items
 const menuItems = JSON.parse(localStorage.getItem('menuItems'));
 if (!menuItems) {
     console.log('Menu items not found');
@@ -268,18 +252,21 @@ if (!menuItems) {
     const menuContainer = $('#menuItems');
     menuContainer.empty(); // Clear previous menu items
     Object.values(menuItems).forEach(menuItem => {
+        const disabledClass = menuItem.disabled ? 'disabled' : '';
+        const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
         const menuItemElement = `
             <div class="col-md-4">
-                <div class="card">
+                <div class="card ${disabledClass}">
                     <div class="card-body">
                         <h5 class="card-title">${menuItem.name}</h5>
                         <p class="card-text">Price: &#8377;${menuItem.price}</p>
+                        ${outOfStockMessage}
                         <div class="quantity-input">
                             <button class="btn btn-outline-secondary decrease-quantity">-</button>
                             <span class="quantity-display">1</span>
                             <button class="btn btn-outline-secondary increase-quantity">+</button>
                         </div>
-                        <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}">Add to Cart</button>
+                        <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add to Cart</button>
                     </div>
                 </div>
             </div>
@@ -297,7 +284,7 @@ $('.decrease-quantity').click(function() {
             }
         });
 
-        $('.increase-quantity').click(function() {
+$('.increase-quantity').click(function() {
             const input = $(this).siblings('.quantity-display');
             let value = parseInt(input.text());
             value++;
@@ -363,6 +350,11 @@ $(document).on('click', '.remove-item', function() {
         return;
     }
 
+    if (userDetails.coinsUtil + total > config.coinsLimit){
+        alert('Daily Limit exceeds, Please proceed with less amount');
+        return;
+    }
+
     const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
 
     // Generate a transaction ID
@@ -425,19 +417,21 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
         .then(() => {
             // Deduct the amount from the user's balance
             const newBalance = userDetails.balance - total;
-            
+            const newCoinsUtil = userDetails.coinsUtil + total;
     // Update the user's balance in the local storage
     userDetails.lastTranDate = currentDate;
     userDetails.balance = newBalance;
     userDetails.isOrderPending = true;
     userDetails.pendingTransId = transactionId;    
-    userDetails.message = "Order is pending..."
+    userDetails.message = "Order is pending...";
+    userDetails.coinsUtil = newCoinsUtil
     localStorage.setItem('userDetails', JSON.stringify(userDetails));
             database.ref('userDetails/' + userDetails.id).update({
                 balance: newBalance,
                 isOrderPending: true,
                 lastTranDate: currentDate,
                 pendingTransId: transactionId,
+                coinsUtil: newCoinsUtil,
                 message: "Order is pending..."
             }).then(() => {
                 localStorage.setItem('userDetails', JSON.stringify(userDetails));

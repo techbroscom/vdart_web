@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pending Transactions</title>
     <!-- Bootstrap CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Custom CSS -->
     <style>
@@ -57,6 +59,8 @@
 
 <nav class="navbar navbar-dark bg-primary center">
     <span class="navbar-brand mb-0 h1">VDart Cafe Wallets</span>
+    <button id="homeButton" class="btn btn-outline-light">Home</button>
+    <button id="tranHisButton" class="btn btn-outline-light">Transaction</button>
     <button id="menuButton" class="btn btn-outline-light">Menu</button>
     <button id="logoutButton" class="btn btn-outline-light">Logout</button>
 </nav>
@@ -67,6 +71,36 @@
         <h3>Pending Transactions:</h3>
         <ul id="pendingTransactionsList"></ul>
     </div>
+
+    <div class="transaction-history" style="display: none;">
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Total</h5>
+                    <h3 class="card-text" id="todayTotal"></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Yesterday's Total</h5>
+                    <h3 class="card-text" id="yesterdayTotal"></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h3>Transaction History <button id="downloadButton" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h3>
+            <ul id="transactionHistoryList" class="list-group">
+                <!-- Transaction history items will be dynamically added here -->
+            </ul>
+        </div>
+    </div>
+    </div>
+
 </div>
 
 <!-- Firebase JavaScript SDK and Initialization code -->
@@ -74,6 +108,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
     // Your Firebase configuration and initialization code here
+
+    var tranHistoryList = [];
 
     const firebaseConfig = {
         apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
@@ -153,6 +189,111 @@
         }
     });
 
+
+    // Function to show transaction history
+function showTransactionHistory() {
+    const transactionHistoryList = document.getElementById('transactionHistoryList');
+    // Clear previous history
+    transactionHistoryList.innerHTML = '';
+
+    // Fetch transaction history from Firebase
+    // Assuming you have fetched the history in a variable called transactionHistory
+
+// Reference to the transaction history for a specific store ID in the Firebase database
+const transactionHistoryRef = db.ref('transactions').child(storeId);
+
+// Fetch transaction history for the specific store ID from Firebase
+transactionHistoryRef.once('value', snapshot => {
+    const transactions = snapshot.val();
+    if (transactions) {
+        // Display transaction history
+        const transactionHistoryList = document.getElementById('transactionHistoryList');
+        transactionHistoryList.innerHTML = ''; // Clear previous list
+        let yesterdayTotal = 0;
+        let todayTotal = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set time to 00:00:00
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1); // Set to yesterday
+
+        Object.values(transactions).reverse().forEach(transaction => {
+            const transactionDateParts = transaction.tDate.split(' ')[0].split('-');
+            const transactionDate = new Date(
+                transactionDateParts[2], // year
+                parseInt(transactionDateParts[1]) - 1, // month (zero-based index)
+                transactionDateParts[0], // day
+                0, // hour
+                0, // minute
+                0, // second
+                0 // millisecond
+            );
+            tranHistoryList.push({
+                'Tran Id': transaction.tId,
+                'From': transaction.tFromName,
+                'To': transaction.tToName,
+                'Coins': transaction.tCoins,
+                'Date': transaction.tDate,
+                'Status': transaction.tStatus
+            });
+            // Calculate yesterday's and today's totals
+            if (transactionDate >= today) {
+                todayTotal += transaction.tCoins;
+            }
+            if (transactionDate >= yesterday && transactionDate < today) {
+                yesterdayTotal += transaction.tCoins;
+            }
+
+            // Create a Bootstrap card for each transaction
+            const card = document.createElement('li');
+            card.className = 'list-group-item mb-3'; // Add margin bottom class
+            card.innerHTML = `
+                <div class="row">
+        <div class="col-md-6">
+            <p><strong>Date:</strong> ${transaction.tDate}</p>
+            <p><strong>From:</strong> ${transaction.tFromName}</p>
+        </div>
+        <div class="col-md-6">
+            <p class="text-md-right"><strong>Coins:</strong> <span class="badge badge-primary">${transaction.tCoins}</span></p>
+        </div>
+    </div>
+            `;
+            transactionHistoryList.appendChild(card);
+        });
+
+        // Display yesterday's and today's totals
+        document.getElementById('yesterdayTotal').textContent = yesterdayTotal;
+        document.getElementById('todayTotal').textContent = todayTotal;
+    } else {
+        console.log('No transaction history found for the store ID');
+    }
+});
+
+
+
+
+    // Show the transaction history section
+    document.querySelector('.transaction-history').style.display = 'block';
+}
+
+<!-- Home button event listener -->
+const homeButton = document.getElementById('homeButton');
+homeButton.addEventListener('click', () => {
+    // Show the pending transactions section
+    document.querySelector('.pending-transactions').style.display = 'block';
+    // Hide the transaction history section
+    document.querySelector('.transaction-history').style.display = 'none';
+});
+
+// Transaction button event listener
+const tranHisButton = document.getElementById('tranHisButton');
+tranHisButton.addEventListener('click', () => {
+    showTransactionHistory();
+    // Show the transaction history section
+    document.querySelector('.transaction-history').style.display = 'block';
+    // Hide the pending transactions section
+    document.querySelector('.pending-transactions').style.display = 'none';
+});
+
           // Logout button event listener
 const logoutButton = document.getElementById('logoutButton');
 logoutButton.addEventListener('click', () => {
@@ -171,6 +312,46 @@ logoutButton.addEventListener('click', () => {
         // Redirect to the login page
         window.location.href = 'menu_management.html';
 });
+
+// Download button event listener
+const downloadButton = document.getElementById('downloadButton');
+downloadButton.addEventListener('click', () => {
+    // Check if tranHistoryList is not empty
+    if (tranHistoryList.length > 0) {
+        // Aggregate transactions by date and calculate total coins for each date
+        const summaryMap = new Map();
+        tranHistoryList.forEach(transaction => {
+            const dateParts = transaction['Date'].split(' ')[0].split('-'); // Extract date part
+            const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; // Reformat date to dd-mm-yyyy
+            const coins = Number(transaction['Coins']);
+            if (summaryMap.has(date)) {
+                summaryMap.set(date, summaryMap.get(date) + coins);
+            } else {
+                summaryMap.set(date, coins);
+            }
+        });
+
+        // Convert summary map to array of objects
+        const summaryList = Array.from(summaryMap, ([date, coins]) => ({ Date: date, Coins: coins }));
+
+        // Convert summary list to Excel file format
+        const wb = XLSX.utils.book_new();
+        const wsSummary = XLSX.utils.json_to_sheet(summaryList);
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+        // Convert transaction history to Excel file format
+        const wsTransactions = XLSX.utils.json_to_sheet(tranHistoryList);
+        XLSX.utils.book_append_sheet(wb, wsTransactions, 'Transactions');
+
+        // Save the Excel file
+        XLSX.writeFile(wb, 'transaction_history.xlsx');
+    } else {
+        console.log('No transaction history found for the store ID');
+    }
+});
+
+
+
 </script>
 
 </body>

@@ -508,6 +508,25 @@ if (!userDetails) {
     document.getElementById('userId').innerText = userDetails.id;
     document.getElementById('userCoinsUtilization').innerText = userDetails.coinsUtil;
     
+    const lastTranDate = new Date(userDetails.lastTranDate);
+    const currentDate = new Date();
+
+    if (lastTranDate.toDateString() === currentDate.toDateString()) {
+        console.log('lastTranDate is the current date.');
+    } else if(lastTranDate.toDateString() != currentDate.toDateString() && userDetails.coinsUtil!=0){
+        userDetails.coinsUtil = 0;
+
+        db.ref('userDetails/' + userDetails.id).update({
+                coinsUtil: 0
+            }).then(() => {
+                localStorage.setItem('userDetails', JSON.stringify(userDetails));
+                document.getElementById('userCoinsUtilization').innerText = userDetails.coinsUtil;
+            }).catch(error => {
+                console.error('Error updating coins util: ', error);
+            });
+        console.log('lastTranDate is not the current date.');
+    }
+
     if (userDetails.isOrderPending) {
 
         document.querySelector('.store-list').style.display = 'none';
@@ -607,6 +626,7 @@ storesListRef.on('value', snapshot => {
         configRef.once('value', function(snapshot) {
             var config = snapshot.val();
             coinsLimit = config.coinsLimit;
+            localStorage.setItem('config', JSON.stringify(config));
             if(userDetails.coinsUtil >= coinsLimit){
             document.getElementById('limitReachedMsg').style.display = 'block';
             document.querySelector('.store-list').style.display = 'none'; // Show the store list

@@ -418,10 +418,13 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
             // Deduct the amount from the user's balance
             const newBalance = userDetails.balance - total;
             const newCoinsUtil = userDetails.coinsUtil + total;
+            const orderStore = storeDetails.id;
+
     // Update the user's balance in the local storage
     userDetails.lastTranDate = currentDate;
     userDetails.balance = newBalance;
     userDetails.isOrderPending = true;
+    userDetails.orderStore = orderStore
     userDetails.pendingTransId = transactionId;    
     userDetails.message = "Order is pending...";
     userDetails.coinsUtil = newCoinsUtil
@@ -431,6 +434,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
                 isOrderPending: true,
                 lastTranDate: currentDate,
                 pendingTransId: transactionId,
+                orderStore:  orderStore,
                 coinsUtil: newCoinsUtil,
                 message: "Order is pending..."
             }).then(() => {

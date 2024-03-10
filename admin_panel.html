@@ -15,6 +15,40 @@
     overflow-x: hidden;
 }
 
+/* Styling for transaction history */
+.transaction-history {
+    margin-top: 20px;
+}
+
+.transaction-history h2 {
+    margin-bottom: 10px;
+}
+
+.store-transaction-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.store-transaction-list li {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.store-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.transaction-details {
+    margin-left: 20px;
+}
+
+.transaction-details p {
+    margin: 5px 0;
+}
+
 .sidebar {
     height: 100vh;
     width: 250px;
@@ -101,6 +135,7 @@
 #locationsList li button {
     margin-left: 5px;
 }
+
 }
     </style>
 </head>
@@ -111,6 +146,7 @@
 <script>
             var adminData = [];
             var empData = [];
+            var feedbacksData = [];
 </script>
 <body>
     <button class="menu-icon" onclick="toggleSidebar()">☰</button>
@@ -122,6 +158,9 @@
         <a href="#" onclick="showContent('admin')">Admin Data</a>
         <a href="#" onclick="showContent('credit')">Credit Coins</a>
         <a href="#" onclick="showContent('createUser')">Add New User</a>
+        <a href="#" onclick="showContent('tranHis')">Transaction History</a>
+        <a href="#" onclick="showContent('credHis')">Credit History</a>
+        <a href="#" onclick="showContent('feedback')">Feedback</a>
         <a href="#" onclick="showContent('config')">Configuration</a>
     </div>
     <div class="content" id="content">
@@ -150,6 +189,16 @@
             <p>This is the Settings content.</p>
         </div>
 
+        <div id="credHis" style="display:none;">
+            <h2>Credit History <button onclick="downloadDataExcel(creditHistoryData, 'Credit')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
+            <ul id="creditHisList" class="list-group"></ul>
+        </div>
+
+        <div id="feedback" style="display:none;">
+            <h2>Feedback <button onclick="downloadDataExcel(feedbacksData, 'Feedbacks')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
+            <ul id="feedbackList" class="list-group"></ul>
+        </div>
+
         <div id="admin" style="display:none;">
             <h2>Admin Data <button onclick="downloadDataExcel(adminData, 'Admin_data')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
             <div class="table-responsive">
@@ -157,6 +206,16 @@
             </div>
         </div>
         
+        <div id="tranHis" class="transaction-history" style="display: none;">
+        <div class="row">
+            <div class="col">
+                <h3>Transaction History <button id="downloadButtonTransactions" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h3>
+                <ul id="transactionHistoryList" class="list-group">
+                    <!-- Transaction history items will be dynamically added here -->
+                </ul>
+            </div>
+        </div>
+        </div>
 
         <div id="credit" style="display:none;">
             <h2>Credit Coins</h2>
@@ -300,6 +359,10 @@
                 showAdminData();
             } else if (id === 'credit') {
                 populateLocationDropdown(); // Populate location dropdown when Credit Coins section is shown
+            } else if (id === 'tranHis') {
+                showTransactionHistory(); // Populate location dropdown when Credit Coins section is shown
+            } else if (id === 'feedback') {
+                showFeedbacks(); // Populate location dropdown when Credit Coins section is shown
             }
 
             // Close the sidebar on mobile view
@@ -307,6 +370,8 @@
         closeSidebar();
     }
         }
+
+        const userDetails = JSON.parse(localStorage.getItem('userDetails'));
 
         // Show the first content by default
         document.getElementById('search').style.display = 'block';
@@ -495,6 +560,39 @@ function downloadDataExcel(xlData, xlFileName) {
     saveAs(data, fileName + fileExtension);
 }
 
+function showFeedbacks(){
+    // Reference to the feedbacks in the Firebase database
+const feedbacksRef = database.ref('feedbacks');
+
+// Fetch feedbacks from Firebase
+feedbacksRef.once('value', snapshot => {
+    const feedbacks = snapshot.val();
+    if (feedbacks) {
+        // Display feedbacks
+        const feedbackList = document.getElementById('feedbackList');
+        feedbackList.innerHTML = ''; // Clear previous list
+        for (let feedbackId in feedbacks) {
+            const feedback = feedbacks[feedbackId];
+            feedbacksData.push(feedback);
+            // Create a list item with Bootstrap styling for each feedback
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.style.marginBottom = '10px'; // Add margin to the bottom
+            listItem.innerHTML = `
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">${feedback.message}</h5>
+                    <small>${feedback.userName || 'Anonymous'}</small>
+                </div>
+                <small>${new Date(feedback.timestamp).toLocaleString()}</small>
+            `;
+            feedbackList.appendChild(listItem);
+        }
+    } else {
+        console.log('No feedbacks found');
+    }
+});
+
+}
 
 
 
@@ -677,9 +775,40 @@ document.getElementById('creditForm').addEventListener('submit', function(event)
             snapshot.forEach(function(childSnapshot) {
                 var childKey = childSnapshot.key;
                 var childData = childSnapshot.val();
-                if (childData.location === location) {
+                if (childData.location === location && childData.status !=false && childData.userType.toLowerCase() !== 'store' && childData.userType.toLowerCase() !== 'admin') {
                     var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
-                    userDetailsRef.child(childKey).update({ balance: newBalance });
+                    userDetailsRef.child(childKey).update({ 
+                        balance: newBalance 
+                    }).then(() => {
+                        const currentDate = new Date();
+
+                        const day = String(currentDate.getDate()).padStart(2, '0');
+                        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                        const year = currentDate.getFullYear();
+
+                        const hours = String(currentDate.getHours()).padStart(2, '0');
+                        const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+                        const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+
+                        const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+
+                        const transactionId = generateTransactionId();
+                        const transaction = {
+                            tCoins: newBalance,
+                            tFrom: userDetails.id,
+                            tFromName: userDetails.userName,
+                            tTo: childData.id, // Assuming this is the store ID or some identifier
+                            tToName: childData.userName, // Assuming this is the store name
+                            tId: transactionId, // Generating a unique ID with a timestamp
+                            tType: 'Credit', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
+                            tStatus: 'Done',
+                            tDate: formattedDate
+                        };
+
+                        // Push the transaction to the Firebase database
+                        const transactionsRef = database.ref('creditTransactions');
+                        transactionsRef.child(transactionId).set(transaction)
+                    });
                 }
             });
             alert('Coins credited successfully.');
@@ -755,6 +884,198 @@ function updatePassword() {
     var userId = document.getElementById('newUserId').value;
     document.getElementById('newUserPassword').value = userId;
 }
+
+// function showTransactionHistory() {
+//     // Reference to the transaction history in the Firebase database
+//     const transactionHistoryRef = database.ref('transactions');
+
+//     // Fetch transaction history from Firebase
+//     transactionHistoryRef.once('value', snapshot => {
+//         const transactions = snapshot.val();
+//         if (transactions) {
+//             // Display transaction history by store
+//             const transactionHistoryList = document.getElementById('transactionHistoryList');
+//             transactionHistoryList.innerHTML = ''; // Clear previous list
+//             for (let storeId in transactions) {
+//                 const storeTransactions = transactions[storeId];
+//                 const storeName = storeId; // Implement a function to get store name by ID
+//                 const storeItem = document.createElement('li');
+//                 storeItem.innerHTML = `<h3>${storeName}</h3>`;
+//                 const storeTransactionList = document.createElement('ul');
+//                 for (let transactionId in storeTransactions) {
+//                     const transaction = storeTransactions[transactionId];
+//                     const transactionItem = document.createElement('li');
+//                     transactionItem.textContent = `${transaction.tDate} - ${transaction.tFromName} to ${transaction.tToName} (${transaction.tCoins} coins)`;
+//                     storeTransactionList.appendChild(transactionItem);
+//                 }
+//                 storeItem.appendChild(storeTransactionList);
+//                 transactionHistoryList.appendChild(storeItem);
+//             }
+
+//             // Show the transaction history section
+//             document.querySelector('.transaction-history').style.display = 'block';
+//         } else {
+//             console.log('No transaction history found');
+//         }
+//     });
+// }
+
+// function showTransactionHistory() {
+//     // Reference to the transaction history in the Firebase database
+//     const transactionHistoryRef = database.ref('transactions');
+
+//     // Fetch transaction history from Firebase
+//     transactionHistoryRef.once('value', snapshot => {
+//         const transactions = snapshot.val();
+//         if (transactions) {
+//             // Display transaction history by store
+//             const transactionHistoryList = document.getElementById('transactionHistoryList');
+//             transactionHistoryList.innerHTML = ''; // Clear previous list
+//             for (let storeId in transactions) {
+//                 const storeTransactions = transactions[storeId];
+//                 const storeName = storeId; // Implement a function to get store name by ID
+//                 const storeItem = document.createElement('li');
+//                 storeItem.className = 'store-transaction-item';
+//                 storeItem.innerHTML = `
+//                     <div class="store-name">${storeName}</div>
+//                     <ul class="store-transaction-list"></ul>
+//                 `;
+//                 const storeTransactionList = storeItem.querySelector('.store-transaction-list');
+//                 for (let transactionId in storeTransactions) {
+//                     const transaction = storeTransactions[transactionId];
+//                     const transactionItem = document.createElement('li');
+//                     transactionItem.textContent = `${transaction.tDate} - ${transaction.tFromName} to ${transaction.tToName} (${transaction.tCoins} coins)`;
+//                     storeTransactionList.appendChild(transactionItem);
+//                 }
+//                 transactionHistoryList.appendChild(storeItem);
+//             }
+
+//             // Show the transaction history section
+//             document.querySelector('.transaction-history').style.display = 'block';
+//         } else {
+//             console.log('No transaction history found');
+//         }
+//     });
+// }
+function showTransactionHistory() {
+    // Reference to the transaction history in the Firebase database
+    const transactionHistoryRef = database.ref('transactions');
+
+    // Fetch transaction history from Firebase
+    transactionHistoryRef.once('value', snapshot => {
+        const transactions = snapshot.val();
+        if (transactions) {
+            // Display transaction history by store
+            const transactionHistoryList = document.getElementById('transactionHistoryList');
+            transactionHistoryList.innerHTML = ''; // Clear previous list
+            for (let storeId in transactions) {
+                const storeTransactions = transactions[storeId];
+                const storeName = storeId; // Get store name by ID
+                const storeItem = document.createElement('li');
+                storeItem.className = 'store-transaction-item';
+                storeItem.innerHTML = `
+                    <div class="store-name" onclick="toggleTransactions(this)">
+                        <span class="dropdown-icon">▶</span>
+                        ${storeName}
+                    </div>
+                    <ul class="store-transaction-list" style="display:none;"></ul>
+                `;
+                const storeTransactionList = storeItem.querySelector('.store-transaction-list');
+                for (let transactionId in storeTransactions) {
+                    const transaction = storeTransactions[transactionId];
+                    const transactionItem = document.createElement('li');
+                    transactionItem.textContent = `${transaction.tDate} - ${transaction.tFromName} to ${transaction.tToName} (${transaction.tCoins} coins)`;
+                    storeTransactionList.appendChild(transactionItem);
+                }
+                transactionHistoryList.appendChild(storeItem);
+            }
+
+            // Show the transaction history section
+            document.querySelector('.transaction-history').style.display = 'block';
+        } else {
+            console.log('No transaction history found');
+        }
+    });
+}
+
+function toggleTransactions(element) {
+    const transactionList = element.nextElementSibling;
+    transactionList.style.display = transactionList.style.display === 'none' ? 'block' : 'none';
+}
+
+const transactionHistoryRef = database.ref('transactions');
+
+// document.getElementById('downloadButtonTransactions').addEventListener('click', () => {
+//     // Fetch transaction history from Firebase
+//     transactionHistoryRef.once('value', snapshot => {
+//         const transactions = snapshot.val();
+//         if (transactions) {
+//             // Convert transaction history to Excel file format
+//             const wb = XLSX.utils.book_new();
+//             for (let storeId in transactions) {
+//                 const storeTransactions = transactions[storeId];
+//                 const ws = XLSX.utils.json_to_sheet(Object.values(storeTransactions));
+//                 XLSX.utils.book_append_sheet(wb, ws, storeId); // Implement a function to get store name by ID
+//             }
+//             // Save the Excel file
+//             XLSX.writeFile(wb, 'transaction_history.xlsx');
+//         } else {
+//             console.log('No transaction history found');
+//         }
+//     });
+// });
+
+document.getElementById('downloadButtonTransactions').addEventListener('click', () => {
+    // Fetch transaction history from Firebase
+    transactionHistoryRef.once('value', snapshot => {
+        const transactions = snapshot.val();
+        if (transactions) {
+            // Convert transaction history to Excel file format
+            const wb = XLSX.utils.book_new();
+
+            // Add individual store transaction sheets
+            for (let storeId in transactions) {
+                const storeTransactions = transactions[storeId];
+                const ws = XLSX.utils.json_to_sheet(Object.values(storeTransactions));
+                XLSX.utils.book_append_sheet(wb, ws, storeId); // Implement a function to get store name by ID
+            }
+
+            // Add summary sheet based on date and store
+            const summarySheetData = {};
+            for (let storeId in transactions) {
+                const storeTransactions = transactions[storeId];
+                for (let transactionId in storeTransactions) {
+                    const transaction = storeTransactions[transactionId];
+                    const date = transaction.tDate.split(' ')[0]; // Extract date part
+
+                    if (!summarySheetData[date]) {
+                        summarySheetData[date] = {};
+                    }
+                    if (!summarySheetData[date][storeId]) {
+                        summarySheetData[date][storeId] = {
+                            Date: date,
+                            Store: storeId,
+                            TotalCoins: 0
+                        };
+                    }
+                    summarySheetData[date][storeId].TotalCoins += transaction.tCoins;
+                }
+            }
+
+            // Flatten the summary sheet data
+            const flatSummarySheetData = Object.values(summarySheetData).reduce((acc, val) => acc.concat(Object.values(val)), []);
+            const summarySheet = XLSX.utils.json_to_sheet(flatSummarySheetData);
+            XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+
+            // Save the Excel file
+            XLSX.writeFile(wb, 'transaction_history.xlsx');
+        } else {
+            console.log('No transaction history found');
+        }
+    });
+});
+
+
 
 function generateTransactionId() {
     const currentDateTime = new Date();

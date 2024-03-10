@@ -217,6 +217,7 @@ transactionHistoryRef.once('value', snapshot => {
         yesterday.setDate(yesterday.getDate() - 1); // Set to yesterday
 
         Object.values(transactions).reverse().forEach(transaction => {
+            if (transaction.tStatus === 'Delivered') {
             const transactionDateParts = transaction.tDate.split(' ')[0].split('-');
             const transactionDate = new Date(
                 transactionDateParts[2], // year
@@ -258,6 +259,7 @@ transactionHistoryRef.once('value', snapshot => {
     </div>
             `;
             transactionHistoryList.appendChild(card);
+}
         });
 
         // Display yesterday's and today's totals

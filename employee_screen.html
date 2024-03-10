@@ -433,7 +433,7 @@
         <ul id="storesList"></ul>
     </div>
 
-    <!-- Store List -->
+    <!-- Oops Msg -->
     <div id="limitReachedMsg" style="display: none; background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-top: 20px;">
         <strong>Oops!</strong> You have reached the limit for the day.
     </div>
@@ -587,7 +587,7 @@ if (!userDetails) {
     // If there is no pending order, display the store list
 
     const storesListRef = db.ref('stores');
-storesListRef.on('value', snapshot => {
+    storesListRef.on('value', snapshot => {
     const stores = snapshot.val();
     const storesList = document.getElementById('storesList');
     storesList.innerHTML = ''; // Clear previous list

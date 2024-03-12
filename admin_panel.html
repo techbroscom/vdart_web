@@ -147,6 +147,7 @@
             var adminData = [];
             var empData = [];
             var feedbacksData = [];
+            var creditHistoryData = [];
 </script>
 <body>
     <button class="menu-icon" onclick="toggleSidebar()">☰</button>
@@ -162,6 +163,7 @@
         <a href="#" onclick="showContent('credHis')">Credit History</a>
         <a href="#" onclick="showContent('feedback')">Feedback</a>
         <a href="#" onclick="showContent('config')">Configuration</a>
+        <a href="#" onclick="logout()">Logout</a>
     </div>
     <div class="content" id="content">
         <div id="search">
@@ -189,7 +191,7 @@
             <p>This is the Settings content.</p>
         </div>
 
-        <div id="credHis" style="display:none;">
+        <div id="credHis" class="credit-transaction-history" style="display:none;">
             <h2>Credit History <button onclick="downloadDataExcel(creditHistoryData, 'Credit')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
             <ul id="creditHisList" class="list-group"></ul>
         </div>
@@ -363,6 +365,8 @@
                 showTransactionHistory(); // Populate location dropdown when Credit Coins section is shown
             } else if (id === 'feedback') {
                 showFeedbacks(); // Populate location dropdown when Credit Coins section is shown
+            } else if (id === 'credHis') {
+                showCreditTransactionHistory(); // Populate location dropdown when Credit Coins section is shown
             }
 
             // Close the sidebar on mobile view
@@ -1075,7 +1079,14 @@ document.getElementById('downloadButtonTransactions').addEventListener('click', 
     });
 });
 
-
+function logout(){
+    if (confirm('Are you sure you want to logout?')) {
+       // Clear user details from localStorage
+       localStorage.removeItem('userDetails');
+        // Redirect to the login page
+        window.location.href = 'index.html';
+    }                 
+}
 
 function generateTransactionId() {
     const currentDateTime = new Date();
@@ -1087,6 +1098,85 @@ function generateTransactionId() {
     const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
     return `${year}${month}${date}${hours}${minutes}${seconds}`;
 }
+
+// function showCreditTransactionHistory() {
+//     // Reference to the credit transaction history in the Firebase database
+//     const transactionHistoryRef = database.ref('creditTransactions');
+
+//     // Fetch credit transaction history from Firebase
+//     transactionHistoryRef.once('value', snapshot => {
+//         const creditTransactions = snapshot.val();
+//         if (creditTransactions) {
+//             // Display credit transaction history
+//             const creditHistoryList = document.getElementById('creditHisList');
+//             creditHistoryList.innerHTML = ''; // Clear previous list
+//             Object.values(creditTransactions).forEach(creditTransaction => {
+//                 // Create a list item for each credit transaction
+//                 const listItem = document.createElement('li');
+//                 listItem.textContent = `Date: ${creditTransaction.tDate}, Coins: ${creditTransaction.tCoins}, From: ${creditTransaction.tFrom}, To: ${creditTransaction.tTo}`;
+//                 creditHistoryList.appendChild(listItem);
+
+//                 creditHistoryData.push({
+//                     'Date': creditTransaction.tDate,
+//                     'Coins': creditTransaction.tCoins,
+//                     'From': creditTransaction.tFrom,
+//                     'To': creditTransaction.tTo,
+//                     'To Name': creditTransaction.tToName
+//                 });
+//             });
+//             // Show the credit transaction history section
+//             document.getElementById('credHis').style.display = 'block';
+//         } else {
+//             console.log('No credit transaction history found');
+//         }
+//     });
+// }
+
+function showCreditTransactionHistory() {
+    // Reference to the credit transaction history in the Firebase database
+    const transactionHistoryRef = database.ref('creditTransactions');
+
+    // Fetch credit transaction history from Firebase
+    transactionHistoryRef.once('value', snapshot => {
+        const creditTransactions = snapshot.val();
+        if (creditTransactions) {
+            // Display credit transaction history
+            const creditHistoryList = document.getElementById('creditHisList');
+            creditHistoryList.innerHTML = ''; // Clear previous list
+            Object.values(creditTransactions).forEach(creditTransaction => {
+                // Create a list item for each credit transaction
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-0"><strong>Date:</strong> ${creditTransaction.tDate}</p>
+                            <p class="mb-0"><strong>Coins:</strong> ${creditTransaction.tCoins}</p>
+                        </div>
+                        <div>
+                            <p class="mb-0"><strong>From:</strong> ${creditTransaction.tFrom}</p>
+                            <p class="mb-0"><strong>To:</strong> ${creditTransaction.tTo}</p>
+                        </div>
+                    </div>
+                `;
+                creditHistoryList.appendChild(listItem);
+
+                creditHistoryData.push({
+                    'Date': creditTransaction.tDate,
+                    'Coins': creditTransaction.tCoins,
+                    'From': creditTransaction.tFrom,
+                    'To': creditTransaction.tTo,
+                    'To Name': creditTransaction.tToName
+                });
+            });
+            // Show the credit transaction history section
+            document.getElementById('credHis').style.display = 'block';
+        } else {
+            console.log('No credit transaction history found');
+        }
+    });
+}
+
 
 </script>
 </body>

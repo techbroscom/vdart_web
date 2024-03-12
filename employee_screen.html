@@ -597,6 +597,7 @@ if (!userDetails) {
     }
     for (let storeKey in stores) {
         const store = stores[storeKey];
+        if(store.location === userDetails.location){
         const storeItem = document.createElement('div');
         storeItem.className = 'card mb-3';
         storeItem.style.cursor = 'pointer';
@@ -613,6 +614,7 @@ if (!userDetails) {
             window.location.href = 'menu.html';
         });
         storesList.appendChild(storeItem);
+        }
     }
 }, error => {
     console.error('Error fetching stores:', error);

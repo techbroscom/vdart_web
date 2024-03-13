@@ -376,6 +376,10 @@
         }
 
         const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+        if (!userDetails) {
+            console.log('User details not found');
+            window.location.href = 'index.html';
+        }
 
         // Show the first content by default
         document.getElementById('search').style.display = 'block';
@@ -841,7 +845,7 @@ function addUserToList() {
     // locationCell.textContent = document.getElementById('newUserLocation').value;
     locationCell.textContent = location;
 
-    userList.push({ userId: userId, userName: userName, location: location, password: userId, status: true, userType: userType });
+    userList.push({ userId: userId, userName: userName, location: location, password: userId, status: 'Active', userType: userType });
 
     document.getElementById('newUserId').value = '';
     document.getElementById('newUserName').value = '';
@@ -866,6 +870,19 @@ function handleSubmitCreateUsers(event) {
       status: user.status
     }).then(function() {
       console.log('User created successfully:', user.userId);
+      // If user type is 'store', create a store in the 'stores' Firebase node
+      if (user.userType === 'Store') {
+        db.ref('stores/' + user.userId).set({
+          id: user.userId,
+          name: user.userName,
+          location: user.location,
+          menu: {} // Initialize an empty menu
+        }).then(function() {
+          console.log('Store created successfully:', user.userId);
+        }).catch(function(error) {
+          console.error('Error creating store:', user.userId, error);
+        });
+      }
     }).catch(function(error) {
       console.error('Error creating user:', user.userId, error);
     });
@@ -1098,39 +1115,6 @@ function generateTransactionId() {
     const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
     return `${year}${month}${date}${hours}${minutes}${seconds}`;
 }
-
-// function showCreditTransactionHistory() {
-//     // Reference to the credit transaction history in the Firebase database
-//     const transactionHistoryRef = database.ref('creditTransactions');
-
-//     // Fetch credit transaction history from Firebase
-//     transactionHistoryRef.once('value', snapshot => {
-//         const creditTransactions = snapshot.val();
-//         if (creditTransactions) {
-//             // Display credit transaction history
-//             const creditHistoryList = document.getElementById('creditHisList');
-//             creditHistoryList.innerHTML = ''; // Clear previous list
-//             Object.values(creditTransactions).forEach(creditTransaction => {
-//                 // Create a list item for each credit transaction
-//                 const listItem = document.createElement('li');
-//                 listItem.textContent = `Date: ${creditTransaction.tDate}, Coins: ${creditTransaction.tCoins}, From: ${creditTransaction.tFrom}, To: ${creditTransaction.tTo}`;
-//                 creditHistoryList.appendChild(listItem);
-
-//                 creditHistoryData.push({
-//                     'Date': creditTransaction.tDate,
-//                     'Coins': creditTransaction.tCoins,
-//                     'From': creditTransaction.tFrom,
-//                     'To': creditTransaction.tTo,
-//                     'To Name': creditTransaction.tToName
-//                 });
-//             });
-//             // Show the credit transaction history section
-//             document.getElementById('credHis').style.display = 'block';
-//         } else {
-//             console.log('No credit transaction history found');
-//         }
-//     });
-// }
 
 function showCreditTransactionHistory() {
     // Reference to the credit transaction history in the Firebase database

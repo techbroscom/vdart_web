@@ -136,12 +136,12 @@ const firebaseConfig = {
         .then((snapshot) => {
           const userData = snapshot.val();
           if (userData) {
-            if (!userData.status){
+            if (userData.status != 'Active'){
               // Invalid credentials
               console.log('User not active');
               alert('User Inactive. Please contact admin!'); // Show alert message
             }
-            else if (userData.password === username) {
+            else if (userData.password === username && userData.status=== 'Active') {
               // Password is same as user ID, show modal to create new password
               $('#resetPasswordModal').modal('show');
               

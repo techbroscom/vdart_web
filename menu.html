@@ -340,6 +340,17 @@ $(document).on('click', '.remove-item', function() {
     const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
     return `${year}${month}${date}${hours}${minutes}${seconds}`;
 }
+const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
+
+const orderNum = generateOrderNumber(storeDetails.id);
+
+generateOrderNumber(storeDetails.id).then(orderNumber => {
+    // Use the order number here
+    console.log(orderNumber);
+
+orderNum = orderNumber;
+});
+
 
         $('.btn-success').prop('disabled', true);
 
@@ -476,6 +487,22 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
         // Redirect to the login page
         window.location.href = 'employee_screen.html';
         });
+
+
+function generateOrderNumber(storeId) {
+    const storeOrderCounterRef = firebase.database().ref('stores/' + storeId + '/orderCounter');
+
+    return storeOrderCounterRef.transaction(counter => {
+        if (counter === null) {
+            return 1; // Start from 1 if counter is null
+        } else {
+            return counter + 1; // Increment the counter
+        }
+    }).then(result => {
+        const orderNumber = result.snapshot.val();
+        return orderNumber.toString(); // Convert to string if needed
+    });
+}
 </script>
 </body>
 </html>

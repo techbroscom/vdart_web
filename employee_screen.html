@@ -568,11 +568,20 @@ if (!userDetails) {
             const pendingTransactionItems = document.getElementById('pendingTransactionItems');
             const pendingTransactionTotal = document.getElementById('pendingTransactionTotal');
 
-            pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
-                `<div>${item.name} (Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)})</div>`
-            ).join('');
-            pendingTransactionTotal.textContent = `$${pendingTran.tCoins.toFixed(2)}`;
+            // pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
+            //     `<div>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
+            // ).join('');
+            // pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
 
+            pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
+    `<div>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
+).join('');
+
+// Display order number on the right side in a big font
+pendingTransactionItems.innerHTML += `<div class="order-no">Order No: ${pendingTran.tOrderNo}</div>`;
+
+// Set the total amount
+pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
             document.getElementById('pendingTransaction').style.display = 'block';
             }
         } else {

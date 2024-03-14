@@ -176,6 +176,7 @@
                 <h3>User Details</h3>
                 <p id="userDetails"></p>
                 <button onclick="updateUserDetails()">Update Details</button>
+                <button onclick="updateUserPassword()">Reset Password</button>
             </div>
         </div>
 
@@ -397,6 +398,36 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();        
 
+// function searchUser(event) {
+//     event.preventDefault();
+//     var userId = document.getElementById('searchInput').value;
+//     var userDetailsRef = database.ref('userDetails/' + userId);
+//     userDetailsRef.once('value', function(snapshot) {
+//         var userDetails = snapshot.val();
+//         if (userDetails) {
+//             var message = userDetails.message ? userDetails.message : "No message";
+//             var orderStore = userDetails.orderStore ? userDetails.orderStore : "No order store";
+//             var pendingTransId = userDetails.pendingTransId ? userDetails.pendingTransId : "No pending transaction ID";
+
+//             var userDetailsHtml = `
+//                 <p><strong>User ID:</strong> ${userDetails.id}</p>
+//                 <p><strong>User Name:</strong> <input type="text" id="userNameInput" value="${userDetails.userName}"></p>
+//                 <p><strong>User Type:</strong> ${userDetails.userType}</p>
+//                 <p><strong>Balance:</strong> <input type="text" id="balanceInput" value="${userDetails.balance}"></p>
+//                 <p><strong>Location:</strong> ${userDetails.location}</p>
+//                 <p><strong>Status:</strong> ${userDetails.status}</p>
+//                 <p><strong>Order Store:</strong> ${orderStore}</p>
+//                 <p><strong>Message:</strong> ${message}</p>
+//                 <p><strong>Pending Transaction ID:</strong> ${pendingTransId}</p>
+//             `;
+//             document.getElementById('userDetails').innerHTML = userDetailsHtml;
+//             document.getElementById('searchResult').style.display = 'block';
+//         } else {
+//             alert('User not found');
+//         }
+//     });
+// }
+
 function searchUser(event) {
     event.preventDefault();
     var userId = document.getElementById('searchInput').value;
@@ -412,9 +443,16 @@ function searchUser(event) {
                 <p><strong>User ID:</strong> ${userDetails.id}</p>
                 <p><strong>User Name:</strong> <input type="text" id="userNameInput" value="${userDetails.userName}"></p>
                 <p><strong>User Type:</strong> ${userDetails.userType}</p>
-                <p><strong>Balance:</strong> <input type="text" id="balanceInput" value="${userDetails.balance}"></p>
-                <p><strong>Location:</strong> ${userDetails.location}</p>
-                <p><strong>Status:</strong> ${userDetails.status}</p>
+                <p><strong>Balance:</strong> ${userDetails.balance}</p>
+                <p><strong>Coins Utilized:</strong> <input type="text" id="coinsUtilInput" value="${userDetails.coinsUtil}"></p>
+                <p><strong>Location:</strong> <input type="text" id="userLoc" value="${userDetails.location}"></p>
+                <p><strong>Status:</strong>
+                    <select id="statusInput">
+                    <option value="Active" ${userDetails.status === 'Active' ? 'selected' : ''}>Active</option>
+                    <option value="Inactive" ${userDetails.status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                    </select>
+                </p>
+                <p><strong>Last Transaction Date:</strong> ${userDetails.lastTranDate}</p>
                 <p><strong>Order Store:</strong> ${orderStore}</p>
                 <p><strong>Message:</strong> ${message}</p>
                 <p><strong>Pending Transaction ID:</strong> ${pendingTransId}</p>
@@ -427,13 +465,19 @@ function searchUser(event) {
     });
 }
 
+
 function updateUserDetails() {
     var userId = document.getElementById('searchInput').value;
     var userName = document.getElementById('userNameInput').value;
-    var balance = document.getElementById('balanceInput').value;
+    var loc = document.getElementById('userLoc').value;
+    var coinsLimit = parseInt(document.getElementById('coinsUtilInput').value);
+    var status = document.getElementById('statusInput').value;
+
     var newDetails = {
         userName: userName,
-        balance: balance
+        coinsUtil: coinsLimit,
+        location: loc,
+        status: status
         // Add other fields to update if needed
     };
     var userDetailsRef = database.ref('userDetails/' + userId);
@@ -442,6 +486,30 @@ function updateUserDetails() {
             alert('Failed to update user details');
         } else {
             alert('User details updated successfully');
+        }
+    });
+}
+
+function updateUserPassword() {
+    var userId = document.getElementById('searchInput').value;
+    var passwrd = userId;
+
+    // Confirm password reset
+    var confirmReset = confirm('Are you sure you want to reset the password?');
+    if (!confirmReset) {
+        return; // Exit function if user cancels
+    }
+    
+    var newDetails1 = {
+        password: passwrd
+        // Add other fields to update if needed
+    };
+    var userDetailsRef = database.ref('userDetails/' + userId);
+    userDetailsRef.update(newDetails1, function(error) {
+        if (error) {
+            alert('Failed to update password');
+        } else {
+            alert('User password updated successfully');
         }
     });
 }

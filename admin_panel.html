@@ -161,6 +161,7 @@
         <a href="#" onclick="showContent('createUser')">Add New User</a>
         <a href="#" onclick="showContent('tranHis')">Transaction History</a>
         <a href="#" onclick="showContent('credHis')">Credit History</a>
+        <a href="#" onclick="showContent('encashData')">Encash Data</a>
         <a href="#" onclick="showContent('feedback')">Feedback</a>
         <a href="#" onclick="showContent('config')">Configuration</a>
         <a href="#" onclick="logout()">Logout</a>
@@ -191,6 +192,29 @@
             <h2>Store Data</h2>
             <p>This is the Settings content.</p>
         </div>
+
+        <div id="encashData" style="display:none;">
+            <h2>Encash Data</h2>
+            <form id="storeForm">
+                <div class="mb-3">
+                    <label for="selectStore" class="form-label">Select Store:</label>
+                    <select id="selectStore" name="selectStore" class="form-select form-select-lg mb-3">
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="storeName" class="form-label">Store Name:</label>
+                    <input type="text" id="storeName" name="storeName" required class="form-control">
+                </div>
+        
+                <div class="mb-3">
+                    <label for="encashAmount" class="form-label">Encashed Amount:</label>
+                    <input type="number" id="encashAmount" name="encashAmount" required class="form-control">
+                </div>
+        
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        
 
         <div id="credHis" class="credit-transaction-history" style="display:none;">
             <h2>Credit History <button onclick="downloadDataExcel(creditHistoryData, 'Credit')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
@@ -368,6 +392,8 @@
                 showFeedbacks(); // Populate location dropdown when Credit Coins section is shown
             } else if (id === 'credHis') {
                 showCreditTransactionHistory(); // Populate location dropdown when Credit Coins section is shown
+            } else if (id === 'encashData') {
+                showEncashData();
             }
 
             // Close the sidebar on mobile view
@@ -499,7 +525,7 @@ function updateUserPassword() {
     if (!confirmReset) {
         return; // Exit function if user cancels
     }
-    
+
     var newDetails1 = {
         password: passwrd
         // Add other fields to update if needed
@@ -547,7 +573,6 @@ function showEmployeeData() {
 
     });
 }
-
 
 function showStoreData() {
     var userDetailsRef = database.ref('userDetails');
@@ -669,8 +694,6 @@ feedbacksRef.once('value', snapshot => {
 });
 
 }
-
-
 
 function toggleSidebar() {
     var sidebar = document.querySelector('.sidebar');
@@ -819,6 +842,64 @@ function populateLocationDropdown() {
         }
     });
 }
+
+// function showEncashData() {
+//     var configRef = database.ref('stores');
+//     configRef.once('value', function(snapshot) {
+//         var storesData = snapshot.val(); // Assuming storesData is the object containing store information
+//         // Get the select element
+//         const selectStore = document.getElementById('selectStore');
+
+//         // Iterate over the store data and populate the dropdown
+//         Object.keys(storesData).forEach(storeId => {
+//             const option = document.createElement('option');
+//             option.value = storeId;
+//             option.text = storeId;
+//             selectStore.appendChild(option);
+//         });
+
+//         document.getElementById('selectStore').addEventListener('change', function() {
+//     // Get the selected store ID
+//     var selectedStoreId = this.value;
+
+//     // Get the store name for the selected store ID
+//     var storeName = storesData[selectedStoreId].name;
+
+//     // Update the storeName input field with the selected store's name
+//     document.getElementById('storeName').value = storeName;
+// });
+//     });
+// }
+
+function showEncashData() {
+    var configRef = database.ref('stores');
+    configRef.once('value', function(snapshot) {
+        var storesData = snapshot.val(); // Assuming storesData is the object containing store information
+        // Get the select element
+        const selectStore = document.getElementById('selectStore');
+
+        // Iterate over the store data and populate the dropdown
+        Object.keys(storesData).forEach(storeId => {
+            const option = document.createElement('option');
+            option.value = storeId;
+            option.text = storeId;
+            selectStore.appendChild(option);
+        });
+
+        // Add change event listener to select element
+        selectStore.addEventListener('change', function() {
+            // Get the selected store ID
+            var selectedStoreId = this.value;
+
+            // Get the store name for the selected store ID
+            var storeName = storesData[selectedStoreId].name;
+
+            // Update the storeName input field with the selected store's name
+            document.getElementById('storeName').value = storeName;
+        });
+    });
+}
+
 
 // Fetch locations from Firebase and populate the dropdown
 var locationsSelect = document.getElementById('newUserLocation');

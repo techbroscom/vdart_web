@@ -272,31 +272,111 @@ $('.increase-quantity').click(function() {
         });
 
 
-        $('.add-to-cart').click(function() {
+//         $('.add-to-cart').click(function() {
+//     const name = $(this).data('name');
+//     const price = $(this).data('price');
+//     const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
+//     let quantity = parseInt(quantityDisplay.text());
+
+//     if (!isNaN(price) && !isNaN(quantity)) {
+//         total += price * quantity;
+//         orderList.append(`
+//         <li class="list-group-item border-0">
+//     <div class="row align-items-center">
+//         <div class="col">${name}</div>
+//         <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
+//         <div class="col">&#8377; ${(price * quantity).toFixed(2)}</div>
+//         <div class="col-auto">
+//             <button class="btn btn-danger btn-sm remove-item">Remove</button>
+//         </div>
+//     </div>
+// </li>        `);
+//         totalPrice.text(`$${total.toFixed(2)}`);
+//         orderSummary.addClass('show');
+//         toggleSummary.addClass('show');
+//     }
+//     $('.btn-success').prop('disabled', total <= 0);
+// });
+
+// $('.add-to-cart').click(function() {
+//     const name = $(this).data('name');
+//     const price = parseFloat($(this).data('price'));
+//     const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
+//     let quantity = parseInt(quantityDisplay.text());
+
+//     if (!isNaN(price) && !isNaN(quantity)) {
+//         // Check if item is already in cart
+//         const existingItem = orderList.find(`.item-name:contains('${name}')`).closest('li');
+//         if (existingItem.length > 0) {
+//             const existingQuantity = parseInt(existingItem.find('.item-quantity').text());
+//             const newQuantity = existingQuantity + quantity;
+//             const newPrice = price * newQuantity;
+//             existingItem.find('.item-quantity').text(newQuantity);
+//             existingItem.find('.item-total-price').text(`${newPrice.toFixed(2)}`);
+//         } else {
+//             total += price * quantity;
+//             orderList.append(`
+//                 <li class="list-group-item border-0">
+//                     <div class="row align-items-center">
+//                         <div class="col item-name">${name}</div>
+//                         <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
+//                         <div class="col item-total-price">${(price * quantity).toFixed(2)}</div>
+//                         <div class="col-auto">
+//                             <button class="btn btn-danger btn-sm remove-item">Remove</button>
+//                         </div>
+//                     </div>
+//                 </li>
+//             `);
+//         }
+//         totalPrice.text(`$${total.toFixed(2)}`);
+//         orderSummary.addClass('show');
+//         toggleSummary.addClass('show');
+//     }
+//     $('.btn-success').prop('disabled', total <= 0);
+// });
+
+// Initialize total outside the click event handler
+$('.add-to-cart').click(function() {
     const name = $(this).data('name');
-    const price = $(this).data('price');
+    const price = parseFloat($(this).data('price'));
     const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
     let quantity = parseInt(quantityDisplay.text());
 
     if (!isNaN(price) && !isNaN(quantity)) {
-        total += price * quantity;
-        orderList.append(`
-        <li class="list-group-item border-0">
-    <div class="row align-items-center">
-        <div class="col">${name}</div>
-        <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
-        <div class="col">&#8377; ${(price * quantity).toFixed(2)}</div>
-        <div class="col-auto">
-            <button class="btn btn-danger btn-sm remove-item">Remove</button>
-        </div>
-    </div>
-</li>        `);
-        totalPrice.text(`$${total.toFixed(2)}`);
+        // Check if item is already in cart
+        const existingItem = orderList.find(`.item-name:contains('${name}')`).closest('li');
+        if (existingItem.length > 0) {
+            const existingQuantity = parseInt(existingItem.find('.item-quantity').text());
+            const newQuantity = existingQuantity + quantity;
+            const newPrice = price * newQuantity;
+            existingItem.find('.item-quantity').text(newQuantity);
+            existingItem.find('.item-total-price').text(`₹ ${newPrice.toFixed(2)}`);
+            total = total - (price * existingQuantity) + newPrice;
+        } else {
+            total += price * quantity;
+            orderList.append(`
+                <li class="list-group-item border-0">
+                    <div class="row align-items-center">
+                        <div class="col item-name">${name}</div>
+                        <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
+                        <div class="col item-total-price">₹ ${(price * quantity).toFixed(2)}</div>
+                        <div class="col-auto">
+                            <button class="btn btn-danger btn-sm remove-item">Remove</button>
+                        </div>
+                    </div>
+                </li>
+            `);
+        }
+        // Update total outside the if-else block
+        totalPrice.text(`₹${total.toFixed(2)}`);
         orderSummary.addClass('show');
         toggleSummary.addClass('show');
     }
     $('.btn-success').prop('disabled', total <= 0);
 });
+
+
+
 
 $(document).on('click', '.remove-item', function() {
     const listItem = $(this).closest('li');
@@ -322,14 +402,14 @@ $(document).on('click', '.remove-item', function() {
 }
 const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
 
-const orderNum = generateOrderNumber(storeDetails.id);
+// const orderNum = generateOrderNumber(storeDetails.id);
 
-generateOrderNumber(storeDetails.id).then(orderNumber => {
-    // Use the order number here
-    console.log(orderNumber);
+// generateOrderNumber(storeDetails.id).then(orderNumber => {
+//     // Use the order number here
+//     console.log(orderNumber);
 
-orderNum = orderNumber;
-});
+// orderNum = orderNumber;
+// });
 
 
         $('.btn-success').prop('disabled', true);

@@ -173,12 +173,18 @@
                             </ul>
                         </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
 
                         <div class="sender-info"><strong>From:</strong> ${transaction.tFromName}</div>
                         <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
                         </div>
+                        <div class="col-md-2">
+                            <div style="text-align: center;">
+            <div style="font-size: 14px; color: #777;">Order No:</div>
+            <div style="font-size: 30px; color: #ff0000; font-weight: bold;">${transaction.tOrderNum}</div>
+        </div>                        
+        </div>
                         </div>
                         <button class="update-button" data-transaction-id="${transactionId}">Delivered</button>
                         <button class="cancel-button" data-transaction-id="${transaction}">Cancel Order</button>
@@ -218,15 +224,12 @@
                         });
                     }
 });
-
-
-
                     // Append the transaction details to the pendingTransactionsList
                     pendingTransactionsList.appendChild(transactionItem);
                 }
              else {
-            console.log('No pending transactions found for the store user ID');
-        }
+                console.log('No pending transactions found for the store user ID');
+            }
         });
 
 

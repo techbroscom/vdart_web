@@ -155,7 +155,7 @@
     <h4>Order Summary</h4>
     <button class="btn btn-secondary btn-sm toggle-summary">Toggle Summary</button>
     <ul id="order-list"></ul>
-    <p>Total: <span id="total-price">$0</span></p>
+    <p>Total: <span id="total-price">₹0</span></p>
     <button class="btn btn-success">Place Order</button>
 </div>
 
@@ -336,6 +336,7 @@ $(document).on('click', '.remove-item', function() {
     const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
     return `${year}${month}${date}${hours}${minutes}${seconds}`;
 }
+
 const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
 
 // const orderNum = generateOrderNumber(storeDetails.id);
@@ -377,7 +378,7 @@ const minutes = String(currentDate.getMinutes()).padStart(2, '0');
 const seconds = String(currentDate.getSeconds()).padStart(2, '0');
 
 const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-
+const orderNum = storeDetails.orderCounter + 1;
     const transaction = {
         items: [],
         tCoins: total,
@@ -388,7 +389,8 @@ const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
         tId: transactionId, // Generating a unique ID with a timestamp
         tType: 'order', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
         tStatus: 'Pending',
-        tDate: formattedDate
+        tDate: formattedDate,
+        tOrderNum: orderNum
     };
 
     $('#order-list li').each(function() {
@@ -446,14 +448,16 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
                 message: "Order is pending..."
             }).then(() => {
                 localStorage.setItem('userDetails', JSON.stringify(userDetails));
-
-                alert('Order placed! Total amount: $' + total);
+                database.ref('stores/' + storeDetails.id + '/orderCounter').set(orderNum).then(() => {
+                    alert('Order placed! Total amount: $' + total);
+                // const orderNumUpdate = generateOrderNumber(storeDetails.id);
                 total = 0;
                 orderList.empty();
                 totalPrice.text('$0');
                 orderSummary.removeClass('show');
                 toggleSummary.removeClass('show');
                 window.location.href = 'employee_screen.html';
+                });
             }).catch(error => {
                 console.error('Error updating user balance: ', error);
                 alert('Failed to place order. Please try again.');
@@ -488,15 +492,10 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
 function generateOrderNumber(storeId) {
     const storeOrderCounterRef = firebase.database().ref('stores/' + storeId + '/orderCounter');
 
-    return storeOrderCounterRef.transaction(counter => {
-        if (counter === null) {
-            return 1; // Start from 1 if counter is null
-        } else {
-            return counter + 1; // Increment the counter
-        }
-    }).then(result => {
-        const orderNumber = result.snapshot.val();
-        return orderNumber.toString(); // Convert to string if needed
+    storeOrderCounterRef.once('value').then(snapshot => {
+        let counter = snapshot.val() || 0; // If counter is null, set it to 0
+        counter++; // Increment the counter
+        storeOrderCounterRef.set(counter); // Set the new counter value in the database
     });
 }
 </script>

@@ -411,7 +411,7 @@
         }
 
         const userDetails = JSON.parse(localStorage.getItem('userDetails'));
-        if (!userDetails) {
+        if (!userDetails || userDetails.userType!='Admin') {
             console.log('User details not found');
             window.location.href = 'index.html';
         }
@@ -431,36 +431,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();        
-
-// function searchUser(event) {
-//     event.preventDefault();
-//     var userId = document.getElementById('searchInput').value;
-//     var userDetailsRef = database.ref('userDetails/' + userId);
-//     userDetailsRef.once('value', function(snapshot) {
-//         var userDetails = snapshot.val();
-//         if (userDetails) {
-//             var message = userDetails.message ? userDetails.message : "No message";
-//             var orderStore = userDetails.orderStore ? userDetails.orderStore : "No order store";
-//             var pendingTransId = userDetails.pendingTransId ? userDetails.pendingTransId : "No pending transaction ID";
-
-//             var userDetailsHtml = `
-//                 <p><strong>User ID:</strong> ${userDetails.id}</p>
-//                 <p><strong>User Name:</strong> <input type="text" id="userNameInput" value="${userDetails.userName}"></p>
-//                 <p><strong>User Type:</strong> ${userDetails.userType}</p>
-//                 <p><strong>Balance:</strong> <input type="text" id="balanceInput" value="${userDetails.balance}"></p>
-//                 <p><strong>Location:</strong> ${userDetails.location}</p>
-//                 <p><strong>Status:</strong> ${userDetails.status}</p>
-//                 <p><strong>Order Store:</strong> ${orderStore}</p>
-//                 <p><strong>Message:</strong> ${message}</p>
-//                 <p><strong>Pending Transaction ID:</strong> ${pendingTransId}</p>
-//             `;
-//             document.getElementById('userDetails').innerHTML = userDetailsHtml;
-//             document.getElementById('searchResult').style.display = 'block';
-//         } else {
-//             alert('User not found');
-//         }
-//     });
-// }
 
 function searchUser(event) {
     event.preventDefault();

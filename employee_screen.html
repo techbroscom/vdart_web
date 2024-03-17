@@ -397,48 +397,6 @@
         <h5>Message: <span id="userMessage"></span></h4>
     </div>
     
-    <!-- <div>
-        <div class="card">
-            <div class="card-inner">
-                <div class="front">
-                    <img src="https://i.ibb.co/PYss3yv/map.png" class="map-img">
-                    <div class="row">
-                        <img src="https://i.ibb.co/G9pDnYJ/chip.png" width="60px">
-                        <img src="https://i.ibb.co/WHZ3nRJ/visa.png" width="60px">
-                    </div>
-                    <div class="row card-no">
-                        <p>18302</p>
-                    </div>
-                    <div class="row card-holder">
-                        <p>CARD HOLDER</p>
-                        <p>VALID TILL</p>
-                    </div>
-                    <div class="row name">
-                        <p>JOE ALISON</p>
-                        <p>10 / 25</p>
-                    </div>
-                </div>
-                <div class="back">
-                    <img src="https://i.ibb.co/PYss3yv/map.png" class="map-img">
-                    <div class="bar"></div>
-                    <div class="row card-cvv">
-                        <div>
-                            <img src="https://i.ibb.co/S6JG8px/pattern.png">
-                        </div>
-                        <p>824</p>
-                    </div>
-                    <div class="row card-text">
-                        <p>this is a virtual card design using HTML and CSS. You can also design something like this.</p>
-                    </div>
-                    <div class="row signature">
-                        <p>CUSTOMER SIGNATURE</p>
-                        <img src="https://i.ibb.co/WHZ3nRJ/visa.png" width="80px">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-    
 
     <div class="loading" id="loading">
         <!-- Replace 'logo.png' with the path to your logo image -->
@@ -462,7 +420,6 @@
     <div id="pendingTransaction" style="display: none;" class="pending-transaction">
         <h3>Order Details:</h3>
         <div id="pendingTransactionItems"></div>
-        <p>Total: <span id="pendingTransactionTotal"></span></p>
     </div>
 
     <div class="feedback-container">
@@ -593,15 +550,61 @@ if (!userDetails) {
             // ).join('');
             // pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
 
-            pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
-    `<div>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
-).join('');
+//             pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
+//     `<div>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
+// ).join('');
 
-// Display order number on the right side in a big font
-pendingTransactionItems.innerHTML += `<div class="order-no">Order No: ${pendingTran.tOrderNo}</div>`;
+// // Display order number on the right side in a big font
+// pendingTransactionItems.innerHTML += `
+//     <div style="text-align: center;">
+//         <div style="font-size: 14px;">Order No:</div>
+//         <div style="font-size: 24px;">${pendingTran.tOrderNum}</div>
+//     </div>`;
+// // Set the total amount
+// pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
+
+// Display items
+// pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
+//     `<div style="color: #333;">${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
+// ).join('');
+
+// // Display order number in a small font at the top and the order number itself in a large font below it
+// pendingTransactionItems.innerHTML += `
+// <div>₹${pendingTran.tCoins.toFixed(2)}</div>
+
+//     <div style="text-align: center; margin-top: 20px;">
+//         <div style="font-size: 14px; color: #777;">Order No:</div>
+//         <div style="font-size: 24px; color: #333;">${pendingTran.tOrderNum}</div>
+//     </div>
+//     `;
+
+// Clear the existing content of pendingTransactionItems
+pendingTransactionItems.innerHTML = '';
+
+// Display items and price on the left column
+pendingTransactionItems.innerHTML += `
+<div class="row">
+    <div class="col-6">
+        ${pendingTran.items.map(item =>
+            `<div style="color: #333;">${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
+        ).join('')}
+        <div>
+            Total: ₹${pendingTran.tCoins.toFixed(2)}
+        </div>
+    </div>
+    <div class="col-6">
+        <div style="text-align: center;">
+            <div style="font-size: 14px; color: #777;">Order No:</div>
+            <div style="font-size: 30px; color: #ff0000; font-weight: bold;">${pendingTran.tOrderNum}</div>
+        </div>
+    </div>
+</div>`;
+
+
 
 // Set the total amount
-pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
+// pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
+
             document.getElementById('pendingTransaction').style.display = 'block';
             }
         } else {

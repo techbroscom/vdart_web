@@ -148,6 +148,7 @@
             var empData = [];
             var feedbacksData = [];
             var creditHistoryData = [];
+            var encashData = [];
 </script>
 <body>
     <button class="menu-icon" onclick="toggleSidebar()">☰</button>
@@ -161,7 +162,8 @@
         <a href="#" onclick="showContent('createUser')">Add New User</a>
         <a href="#" onclick="showContent('tranHis')">Transaction History</a>
         <a href="#" onclick="showContent('credHis')">Credit History</a>
-        <a href="#" onclick="showContent('encashData')">Encash Data</a>
+        <a href="#" onclick="showContent('encashData')">Encash</a>
+        <a href="#" onclick="showContent('encashHis')">Encash History</a>
         <a href="#" onclick="showContent('feedback')">Feedback</a>
         <a href="#" onclick="showContent('config')">Configuration</a>
         <a href="#" onclick="logout()">Logout</a>
@@ -194,8 +196,8 @@
         </div>
 
         <div id="encashData" style="display:none;">
-            <h2>Encash Data</h2>
-            <form id="storeForm">
+            <h2>Encash</h2>
+            <form id="encashForm">
                 <div class="mb-3">
                     <label for="selectStore" class="form-label">Select Store:</label>
                     <select id="selectStore" name="selectStore" class="form-select form-select-lg mb-3">
@@ -360,6 +362,10 @@
             </table>
         </div>
         
+        <div id="encashHis" class="credit-transaction-history" style="display:none;">
+            <h2>Encash History <button onclick="downloadDataExcel(encashData, 'Encash_data')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
+            <ul id="encashHisList" class="list-group"></ul>
+        </div>
 
     </div>
     <script src="excelUtils.js"></script>
@@ -394,6 +400,8 @@
                 showCreditTransactionHistory(); // Populate location dropdown when Credit Coins section is shown
             } else if (id === 'encashData') {
                 showEncashData();
+            } else if (id === 'encashHis') {
+                showEncashHistory();
             }
 
             // Close the sidebar on mobile view
@@ -1309,6 +1317,100 @@ function showCreditTransactionHistory() {
         }
     });
 }
+
+function showEncashHistory() {
+    // Reference to the credit transaction history in the Firebase database
+    const transactionHistoryRef = database.ref('encashTransactions');
+
+    // Fetch credit transaction history from Firebase
+    transactionHistoryRef.once('value', snapshot => {
+        const creditTransactions = snapshot.val();
+        if (creditTransactions) {
+            // Display credit transaction history
+            const creditHistoryList = document.getElementById('encashHisList');
+            creditHistoryList.innerHTML = ''; // Clear previous list
+            Object.values(creditTransactions).forEach(creditTransaction => {
+                // Create a list item for each credit transaction
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-0"><strong>Date:</strong> ${creditTransaction.tDate}</p>
+                            <p class="mb-0"><strong>Coins:</strong> ${creditTransaction.tCoins}</p>
+                        </div>
+                        <div>
+                            <p class="mb-0"><strong>From:</strong> ${creditTransaction.tFrom}</p>
+                            <p class="mb-0"><strong>To:</strong> ${creditTransaction.tTo}</p>
+                        </div>
+                    </div>
+                `;
+                encashHisList.appendChild(listItem);
+
+                encashData.push({
+                    'Date': creditTransaction.tDate,
+                    'Coins': creditTransaction.tCoins,
+                    'From': creditTransaction.tFrom,
+                    'To': creditTransaction.tTo,
+                    'To Name': creditTransaction.tToName
+                });
+            });
+            // Show the credit transaction history section
+            document.getElementById('encashHis').style.display = 'block';
+        } else {
+            console.log('No encash transaction history found');
+        }
+    });
+}
+
+document.getElementById('encashForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    var idSelect = document.getElementById('selectStore');
+    var storeId = idSelect.options[idSelect.selectedIndex].text;
+    var storeName = document.getElementById('storeName').value;
+    var encashAmount = parseInt(document.getElementById('encashAmount').value);
+
+    // Check if any of the fields are empty
+    if (!storeId || !storeName || isNaN(encashAmount)) {
+        alert('Please fill in all the fields and make sure the encashed amount is a valid number.');
+        return;
+    }
+
+    const currentDate = new Date();
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const year = currentDate.getFullYear();
+    const hours = String(currentDate.getHours()).padStart(2, '0');
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+    const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+    const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    const transactionId = generateTransactionId();
+    const transaction = {
+        tCoins: encashAmount,
+        tFrom: userDetails.id,
+        tFromName: userDetails.userName,
+        tTo: storeId,
+        tToName: storeName,
+        tId: transactionId,
+        tType: 'Encash',
+        tStatus: 'Done',
+        tDate: formattedDate
+    };
+
+    // Push the transaction to the Firebase database
+    const transactionsRef = database.ref('encashTransactions');
+    transactionsRef.child(transactionId).set(transaction)
+        .then(() => {
+            alert('Encashment transaction successful!');
+            document.getElementById('encashForm').reset();
+        })
+        .catch(error => {
+            alert('Failed to process encashment transaction. Please try again.');
+            console.error('Error adding encashment transaction: ', error);
+        });
+});
+
 
 
 </script>

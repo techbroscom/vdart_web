@@ -53,6 +53,18 @@
         .update-button:hover {
             background-color: #218838;
         }
+        .cancel-button {
+            background-color: #e93535;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .cancel-button:hover {
+            background-color: #7c1515;
+        }
     </style>
 </head>
 <body>
@@ -135,33 +147,41 @@
     // Reference to the pending transactions for the store user ID
     const pendingTransactionsRef = db.ref('transactions').child(storeId);
 
-    // Fetch pending transactions for the store user ID
-    pendingTransactionsRef.once('value', snapshot => {
-        const pendingTransactions = snapshot.val();
-        if (pendingTransactions) {
-            // Display pending transactions
-            const pendingTransactionsList = document.getElementById('pendingTransactionsList');
-            pendingTransactionsList.innerHTML = ''; // Clear previous list
-            for (let transactionId in pendingTransactions) {
-                const transaction = pendingTransactions[transactionId];
-                if (transaction.tStatus === 'Pending') { // Check if status is "Pending"
-                    // Display transaction details
-                    const transactionItem = document.createElement('li');
+
+            // Listen for changes in the pending transactions list
+        pendingTransactionsRef.on('child_added', snapshot => {
+            const transactionId = snapshot.key;
+            const transaction = snapshot.val();
+
+            // Display the new pending transaction if its status is "Pending"
+            if (transaction.tStatus === 'Pending') {
+                // Display transaction details (similar to your existing code)
+
+                // Create and append the transaction item to the pendingTransactionsList
+                // (similar to your existing code)
+                const transactionItem = document.createElement('li');
                     transactionItem.innerHTML = `
                     <div class="transaction-details">
-                        <div class="transaction-id"><strong>Transaction ID:</strong> ${transactionId}</div>
-                        <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
+                        <div class="row">
+                        <div class="col-md-6">
                         <div class="items">
                             <strong>Items:</strong>
                             <ul>
                                 ${transaction.items.map(item =>
-                                    `<li>${item.name} (Quantity: ${item.quantity}, Price: $${item.price.toFixed(2)})</li>`
+                                    `<li>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</li>`
                                 ).join('')}
                             </ul>
                         </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
+
                         <div class="sender-info"><strong>From:</strong> ${transaction.tFromName}</div>
                         <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
+                        </div>
+                        </div>
                         <button class="update-button" data-transaction-id="${transactionId}">Delivered</button>
+                        <button class="cancel-button" data-transaction-id="${transaction}">Cancel Order</button>
                     </div>
                     `;
 
@@ -180,14 +200,117 @@
                         });
                     });
 
+                    // Add click event listener to update button
+                    const cancelButton = transactionItem.querySelector('.cancel-button');
+                    cancelButton.addEventListener('click', () => {
+                        // Show a confirmation dialog
+                    if (confirm('Are you sure you want to cancel this order?')) {
+                        // Update the transaction status to "Cancelled" in the database
+                        db.ref('transactions').child(storeId).child(transaction.tId).update({
+                            tStatus: 'Cancelled'
+                        }).then(() => {
+                            console.log('Transaction status updated to Cancelled');
+                            // Remove the transaction from the list
+                            transactionItem.remove();
+                            initiateRefund(transaction);
+                        }).catch(error => {
+                            console.error('Error updating transaction status:', error);
+                        });
+                    }
+});
+
+
+
                     // Append the transaction details to the pendingTransactionsList
                     pendingTransactionsList.appendChild(transactionItem);
                 }
-            }
-        } else {
+             else {
             console.log('No pending transactions found for the store user ID');
         }
-    });
+        });
+
+
+    // Fetch pending transactions for the store user ID
+//     pendingTransactionsRef.once('value', snapshot => {
+//         const pendingTransactions = snapshot.val();
+//         if (pendingTransactions) {
+//             // Display pending transactions
+//             const pendingTransactionsList = document.getElementById('pendingTransactionsList');
+//             pendingTransactionsList.innerHTML = ''; // Clear previous list
+//             for (let transactionId in pendingTransactions) {
+//                 const transaction = pendingTransactions[transactionId];
+//                 if (transaction.tStatus === 'Pending') { // Check if status is "Pending"
+//                     // Display transaction details
+//                     const transactionItem = document.createElement('li');
+//                     transactionItem.innerHTML = `
+//                     <div class="transaction-details">
+//                         <div class="row">
+//                         <div class="col-md-6">
+//                         <div class="items">
+//                             <strong>Items:</strong>
+//                             <ul>
+//                                 ${transaction.items.map(item =>
+//                                     `<li>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</li>`
+//                                 ).join('')}
+//                             </ul>
+//                         </div>
+//                 </div>
+//                 <div class="col-md-6">
+//                     <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
+
+//                         <div class="sender-info"><strong>From:</strong> ${transaction.tFromName}</div>
+//                         <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
+//                         </div>
+//                         </div>
+//                         <button class="update-button" data-transaction-id="${transactionId}">Delivered</button>
+//                         <button class="cancel-button" data-transaction-id="${transaction}">Cancel Order</button>
+//                     </div>
+//                     `;
+
+//                     // Add click event listener to update button
+//                     const updateButton = transactionItem.querySelector('.update-button');
+//                     updateButton.addEventListener('click', () => {
+//                         // Update the transaction status to "Delivered" in the database
+//                         db.ref('transactions').child(storeId).child(transactionId).update({
+//                             tStatus: 'Delivered'
+//                         }).then(() => {
+//                             console.log('Transaction status updated to Delivered');
+//                             // Remove the transaction from the list
+//                             transactionItem.remove();
+//                         }).catch(error => {
+//                             console.error('Error updating transaction status:', error);
+//                         });
+//                     });
+
+//                     // Add click event listener to update button
+//                     const cancelButton = transactionItem.querySelector('.cancel-button');
+//                     cancelButton.addEventListener('click', () => {
+//                         // Show a confirmation dialog
+//                     if (confirm('Are you sure you want to cancel this order?')) {
+//                         // Update the transaction status to "Cancelled" in the database
+//                         db.ref('transactions').child(storeId).child(transaction.tId).update({
+//                             tStatus: 'Cancelled'
+//                         }).then(() => {
+//                             console.log('Transaction status updated to Cancelled');
+//                             // Remove the transaction from the list
+//                             transactionItem.remove();
+//                             initiateRefund(transaction);
+//                         }).catch(error => {
+//                             console.error('Error updating transaction status:', error);
+//                         });
+//                     }
+// });
+
+
+
+//                     // Append the transaction details to the pendingTransactionsList
+//                     pendingTransactionsList.appendChild(transactionItem);
+//                 }
+//             }
+//         } else {
+//             console.log('No pending transactions found for the store user ID');
+//         }
+//     });
 
 
     // Function to show transaction history
@@ -252,6 +375,14 @@ transactionHistoryRef.once('value', snapshot => {
         <div class="col-md-6">
             <p><strong>Date:</strong> ${transaction.tDate}</p>
             <p><strong>From:</strong> ${transaction.tFromName}</p>
+            <div class="items">
+                            <strong>Items:</strong>
+                            <ul>
+                                ${transaction.items.map(item =>
+                                    `<li>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
         </div>
         <div class="col-md-6">
             <p class="text-md-right"><strong>Coins:</strong> <span class="badge badge-primary">${transaction.tCoins}</span></p>
@@ -269,9 +400,6 @@ transactionHistoryRef.once('value', snapshot => {
         console.log('No transaction history found for the store ID');
     }
 });
-
-
-
 
     // Show the transaction history section
     document.querySelector('.transaction-history').style.display = 'block';
@@ -352,6 +480,35 @@ downloadButton.addEventListener('click', () => {
     }
 });
 
+function initiateRefund(transaction){
+    // Reference to the user's details in the database
+var userRef = db.ref('userDetails/' + transaction.tFrom);
+
+// Read the current balance
+userRef.once('value').then(function(snapshot) {
+    var userData = snapshot.val();
+    var currentBalance = userData.balance || 0; // If balance is not set, default to 0
+    var currentUtilBalance = userData.coinsUtil || transaction.tCoins; // If balance is not set, default to 0
+
+    // Calculate the new balance (for example, adding 100 to the current balance)
+    var newBalance = currentBalance + transaction.tCoins;
+    var newUtilBalance = currentUtilBalance - transaction.tCoins;
+
+    // Update the user's balance in the database
+    userRef.update({
+        balance: newBalance,
+        coinsUtil: newUtilBalance,
+        message: 'Refund successful',
+        isOrderPending: false
+    }).then(function() {
+        console.log('Balance updated successfully');
+    }).catch(function(error) {
+        console.error('Error updating balance:', error);
+    });
+}).catch(function(error) {
+    console.error('Error reading user data:', error);
+});
+}
 
 
 </script>

@@ -149,6 +149,7 @@
             var feedbacksData = [];
             var creditHistoryData = [];
             var encashData = [];
+            var logDataList = [];
 </script>
 <body>
     <button class="menu-icon" onclick="toggleSidebar()">☰</button>
@@ -166,6 +167,7 @@
         <a href="#" onclick="showContent('encashHis')">Encash History</a>
         <a href="#" onclick="showContent('feedback')">Feedback</a>
         <a href="#" onclick="showContent('config')">Configuration</a>
+        <a href="#" onclick="showContent('logs')">Logs</a>
         <a href="#" onclick="logout()">Logout</a>
     </div>
     <div class="content" id="content">
@@ -367,6 +369,11 @@
             <ul id="encashHisList" class="list-group"></ul>
         </div>
 
+        <div id="logs" style="display:none;">
+            <h2>Logs <button onclick="downloadDataExcel(logDataList, 'Logs')" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h2>
+            <ul id="logsList" class="list-group"></ul>
+        </div>
+
     </div>
     <script src="excelUtils.js"></script>
 
@@ -402,6 +409,8 @@
                 showEncashData();
             } else if (id === 'encashHis') {
                 showEncashHistory();
+            } else if (id === 'logs') {
+                showLogsHistory();
             }
 
             // Close the sidebar on mobile view
@@ -431,6 +440,19 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();        
+
+// Reference to your Firebase Realtime Database
+const logsRef = database.ref('logs');
+
+// Function to add a log entry to the database
+function addLog(message) {
+    logsRef.push({
+        userId: userDetails.id,
+        userName: userDetails.userName,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        message: message
+    });
+}
 
 function searchUser(event) {
     event.preventDefault();
@@ -489,6 +511,7 @@ function updateUserDetails() {
         if (error) {
             alert('Failed to update user details');
         } else {
+            addLog('Changed details for user ' + userId);
             alert('User details updated successfully');
         }
     });
@@ -513,6 +536,7 @@ function updateUserPassword() {
         if (error) {
             alert('Failed to update password');
         } else {
+            addLog('Password reset for user ' + userId);
             alert('User password updated successfully');
         }
     });
@@ -700,6 +724,7 @@ function updateCoinsLimit() {
     var newCoinsLimit = document.getElementById('coinsLimit').value;
     database.ref('config/coinsLimit').set(newCoinsLimit)
         .then(() => {
+            addLog('Coins Limit updated to' + newCoinsLimit);
             alert('Coins Limit updated successfully');
         })
         .catch(error => {
@@ -738,6 +763,7 @@ function updateLocation(locationId, newValue) {
     updates['config/locations/' + locationId] = newValue;
     database.ref().update(updates)
         .then(() => {
+            addLog('Location updated ' + newValue);
             // Fetch the updated config data and update the locations list
             database.ref('config').once('value', function(snapshot) {
                 var config = snapshot.val();
@@ -754,6 +780,7 @@ function updateLocation(locationId, newValue) {
 function removeLocation(locationId) {
     var confirmation = confirm('Are you sure you want to remove this location?');
     if (confirmation) {
+        addLog('Location removed ' + locationId);
         database.ref('config/locations/' + locationId).remove()
             .then(() => {
                 // Fetch the updated config data and update the locations list
@@ -773,6 +800,7 @@ function removeLocation(locationId) {
 function addLocation() {
     var newLocation = prompt('Enter new location:');
     if (newLocation) {
+        addLog('Location added ' + newLocation);
         var locationId = database.ref('config/locations').push().key;
         var updates = {};
         updates['config/locations/' + locationId] = newLocation;
@@ -795,6 +823,7 @@ function addLocation() {
 function addUserType() {
     var newUserType = prompt('Enter new user type:');
     if (newUserType) {
+        addLog('New User Type added ' + newCoinsLimit);
         database.ref('config/userType').push(newUserType);
     }
 }
@@ -821,6 +850,7 @@ function populateLocationDropdown() {
     });
 }
 
+
 // function showEncashData() {
 //     var configRef = database.ref('stores');
 //     configRef.once('value', function(snapshot) {
@@ -836,16 +866,17 @@ function populateLocationDropdown() {
 //             selectStore.appendChild(option);
 //         });
 
-//         document.getElementById('selectStore').addEventListener('change', function() {
-//     // Get the selected store ID
-//     var selectedStoreId = this.value;
+//         // Add change event listener to select element
+//         selectStore.addEventListener('change', function() {
+//             // Get the selected store ID
+//             var selectedStoreId = this.value;
 
-//     // Get the store name for the selected store ID
-//     var storeName = storesData[selectedStoreId].name;
+//             // Get the store name for the selected store ID
+//             var storeName = storesData[selectedStoreId].name;
 
-//     // Update the storeName input field with the selected store's name
-//     document.getElementById('storeName').value = storeName;
-// });
+//             // Update the storeName input field with the selected store's name
+//             document.getElementById('storeName').value = storeName;
+//         });
 //     });
 // }
 
@@ -856,11 +887,17 @@ function showEncashData() {
         // Get the select element
         const selectStore = document.getElementById('selectStore');
 
+        // Add a default option to prompt the user to select a store
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.text = 'Select a Store';
+        selectStore.appendChild(defaultOption);
+
         // Iterate over the store data and populate the dropdown
         Object.keys(storesData).forEach(storeId => {
             const option = document.createElement('option');
             option.value = storeId;
-            option.text = storeId;
+            option.text = storesData[storeId].name; // Use store name as display text
             selectStore.appendChild(option);
         });
 
@@ -870,13 +907,15 @@ function showEncashData() {
             var selectedStoreId = this.value;
 
             // Get the store name for the selected store ID
-            var storeName = storesData[selectedStoreId].name;
+            var storeName = selectedStoreId ? storesData[selectedStoreId].name : '';
 
             // Update the storeName input field with the selected store's name
             document.getElementById('storeName').value = storeName;
         });
     });
 }
+
+
 
 
 // Fetch locations from Firebase and populate the dropdown
@@ -910,7 +949,7 @@ document.getElementById('creditForm').addEventListener('submit', function(event)
             snapshot.forEach(function(childSnapshot) {
                 var childKey = childSnapshot.key;
                 var childData = childSnapshot.val();
-                if (childData.location === location && childData.status !=false && childData.userType.toLowerCase() !== 'store' && childData.userType.toLowerCase() !== 'admin') {
+                if (childData.location === location && childData.status.toLowerCase() !='inactive' && childData.userType.toLowerCase() !== 'store' && childData.userType.toLowerCase() !== 'admin') {
                     var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
                     userDetailsRef.child(childKey).update({ 
                         balance: newBalance 
@@ -946,6 +985,7 @@ document.getElementById('creditForm').addEventListener('submit', function(event)
                     });
                 }
             });
+            addLog(coins+ ' Coins credited to location '+location);
             alert('Coins credited successfully.');
             document.getElementById('creditForm').reset();
         });
@@ -1033,78 +1073,6 @@ function updatePassword() {
     document.getElementById('newUserPassword').value = userId;
 }
 
-// function showTransactionHistory() {
-//     // Reference to the transaction history in the Firebase database
-//     const transactionHistoryRef = database.ref('transactions');
-
-//     // Fetch transaction history from Firebase
-//     transactionHistoryRef.once('value', snapshot => {
-//         const transactions = snapshot.val();
-//         if (transactions) {
-//             // Display transaction history by store
-//             const transactionHistoryList = document.getElementById('transactionHistoryList');
-//             transactionHistoryList.innerHTML = ''; // Clear previous list
-//             for (let storeId in transactions) {
-//                 const storeTransactions = transactions[storeId];
-//                 const storeName = storeId; // Implement a function to get store name by ID
-//                 const storeItem = document.createElement('li');
-//                 storeItem.innerHTML = `<h3>${storeName}</h3>`;
-//                 const storeTransactionList = document.createElement('ul');
-//                 for (let transactionId in storeTransactions) {
-//                     const transaction = storeTransactions[transactionId];
-//                     const transactionItem = document.createElement('li');
-//                     transactionItem.textContent = `${transaction.tDate} - ${transaction.tFromName} to ${transaction.tToName} (${transaction.tCoins} coins)`;
-//                     storeTransactionList.appendChild(transactionItem);
-//                 }
-//                 storeItem.appendChild(storeTransactionList);
-//                 transactionHistoryList.appendChild(storeItem);
-//             }
-
-//             // Show the transaction history section
-//             document.querySelector('.transaction-history').style.display = 'block';
-//         } else {
-//             console.log('No transaction history found');
-//         }
-//     });
-// }
-
-// function showTransactionHistory() {
-//     // Reference to the transaction history in the Firebase database
-//     const transactionHistoryRef = database.ref('transactions');
-
-//     // Fetch transaction history from Firebase
-//     transactionHistoryRef.once('value', snapshot => {
-//         const transactions = snapshot.val();
-//         if (transactions) {
-//             // Display transaction history by store
-//             const transactionHistoryList = document.getElementById('transactionHistoryList');
-//             transactionHistoryList.innerHTML = ''; // Clear previous list
-//             for (let storeId in transactions) {
-//                 const storeTransactions = transactions[storeId];
-//                 const storeName = storeId; // Implement a function to get store name by ID
-//                 const storeItem = document.createElement('li');
-//                 storeItem.className = 'store-transaction-item';
-//                 storeItem.innerHTML = `
-//                     <div class="store-name">${storeName}</div>
-//                     <ul class="store-transaction-list"></ul>
-//                 `;
-//                 const storeTransactionList = storeItem.querySelector('.store-transaction-list');
-//                 for (let transactionId in storeTransactions) {
-//                     const transaction = storeTransactions[transactionId];
-//                     const transactionItem = document.createElement('li');
-//                     transactionItem.textContent = `${transaction.tDate} - ${transaction.tFromName} to ${transaction.tToName} (${transaction.tCoins} coins)`;
-//                     storeTransactionList.appendChild(transactionItem);
-//                 }
-//                 transactionHistoryList.appendChild(storeItem);
-//             }
-
-//             // Show the transaction history section
-//             document.querySelector('.transaction-history').style.display = 'block';
-//         } else {
-//             console.log('No transaction history found');
-//         }
-//     });
-// }
 function showTransactionHistory() {
     // Reference to the transaction history in the Firebase database
     const transactionHistoryRef = database.ref('transactions');
@@ -1153,25 +1121,6 @@ function toggleTransactions(element) {
 
 const transactionHistoryRef = database.ref('transactions');
 
-// document.getElementById('downloadButtonTransactions').addEventListener('click', () => {
-//     // Fetch transaction history from Firebase
-//     transactionHistoryRef.once('value', snapshot => {
-//         const transactions = snapshot.val();
-//         if (transactions) {
-//             // Convert transaction history to Excel file format
-//             const wb = XLSX.utils.book_new();
-//             for (let storeId in transactions) {
-//                 const storeTransactions = transactions[storeId];
-//                 const ws = XLSX.utils.json_to_sheet(Object.values(storeTransactions));
-//                 XLSX.utils.book_append_sheet(wb, ws, storeId); // Implement a function to get store name by ID
-//             }
-//             // Save the Excel file
-//             XLSX.writeFile(wb, 'transaction_history.xlsx');
-//         } else {
-//             console.log('No transaction history found');
-//         }
-//     });
-// });
 
 document.getElementById('downloadButtonTransactions').addEventListener('click', () => {
     // Fetch transaction history from Firebase
@@ -1342,7 +1291,7 @@ document.getElementById('encashForm').addEventListener('submit', function(event)
     var encashAmount = parseInt(document.getElementById('encashAmount').value);
 
     // Check if any of the fields are empty
-    if (!storeId || !storeName || isNaN(encashAmount)) {
+    if (!storeId || storeId=='Select a Store' || !storeName || isNaN(encashAmount)) {
         alert('Please fill in all the fields and make sure the encashed amount is a valid number.');
         return;
     }
@@ -1372,6 +1321,7 @@ document.getElementById('encashForm').addEventListener('submit', function(event)
     const transactionsRef = database.ref('encashTransactions');
     transactionsRef.child(transactionId).set(transaction)
         .then(() => {
+            addLog('Encashed '+ encashAmount + ' to '+ storeId + '('+storeName+')');
             alert('Encashment transaction successful!');
             document.getElementById('encashForm').reset();
         })
@@ -1381,7 +1331,32 @@ document.getElementById('encashForm').addEventListener('submit', function(event)
         });
 });
 
+function showLogsHistory() {
+    // Reference to the credit transaction history in the Firebase database
+    const logsRef = database.ref('logs');
 
+    // Fetch the log history once
+    logsRef.once('value').then(function(snapshot) {
+        const logsList = document.getElementById('logsList');
+        logsList.innerHTML = ''; // Clear existing logs
+
+        snapshot.forEach(function(childSnapshot) {
+            const logData = childSnapshot.val();
+            const logItem = document.createElement('li');
+            logItem.classList.add('list-group-item');
+            logItem.textContent = logData.message + ' - ' + new Date(logData.timestamp).toString() + ' - by ' + logData.userId + ' ( ' + logData.userName + ' ) ';
+
+            logDataList.push({
+                    'Date': new Date(logData.timestamp).toString(),
+                    'Message': logData.message,
+                    'UserId': logData.userId,
+                    'UserName': logData.userName
+                });
+
+            logsList.appendChild(logItem);
+        });
+    });
+}
 
 </script>
 </body>

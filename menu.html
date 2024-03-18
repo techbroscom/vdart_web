@@ -449,14 +449,34 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
             }).then(() => {
                 localStorage.setItem('userDetails', JSON.stringify(userDetails));
                 database.ref('stores/' + storeDetails.id + '/orderCounter').set(orderNum).then(() => {
+                    
+
+                    const userRef = firebase.database().ref(`userDetails/${userDetails.id}/transactions`);
+                    userRef.once('value').then((snapshot) => {
+                        let transactions = snapshot.val() || {};
+                        const transactionCount = Object.keys(transactions).length;
+                        if (transactionCount >= 5) {
+                        // Remove the oldest transaction
+                        const oldestTransactionKey = Object.keys(transactions)[0];
+                        delete transactions[oldestTransactionKey];
+                        }
+                        // Add the new transaction
+                        transactions[transaction.tId] = transaction;
+                        userRef.set(transactions);
+                    }).catch((error) => {
+                        console.error('Error adding transaction:', error);
+                        throw error; // Re-throw
+                    }).then(() => {
+
                     alert('Order placed! Total amount: $' + total);
-                // const orderNumUpdate = generateOrderNumber(storeDetails.id);
+                // addTransactionToUser(userDetails.id, transaction);
                 total = 0;
                 orderList.empty();
                 totalPrice.text('$0');
                 orderSummary.removeClass('show');
                 toggleSummary.removeClass('show');
                 window.location.href = 'employee_screen.html';
+                    });
                 });
             }).catch(error => {
                 console.error('Error updating user balance: ', error);
@@ -498,6 +518,27 @@ function generateOrderNumber(storeId) {
         storeOrderCounterRef.set(counter); // Set the new counter value in the database
     });
 }
+
+function addTransactionToUser(id, newTransaction) {
+  const userRef = firebase.database().ref(`userDetails/${id}/transactions`);
+userRef.once('value').then((snapshot) => {
+    let transactions = snapshot.val() || {};
+    const transactionCount = Object.keys(transactions).length;
+    if (transactionCount >= 5) {
+      // Remove the oldest transaction
+      const oldestTransactionKey = Object.keys(transactions)[0];
+      delete transactions[oldestTransactionKey];
+    }
+    // Add the new transaction
+    transactions[`transaction${transactionCount + 1}`] = newTransaction;
+    userRef.set(transactions);
+  }).catch((error) => {
+    console.error('Error adding transaction:', error);
+    throw error; // Re-throw the error to propagate it
+  });
+}
+
+
 </script>
 </body>
 </html>

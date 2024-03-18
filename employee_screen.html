@@ -422,6 +422,11 @@
         <div id="pendingTransactionItems"></div>
     </div>
 
+    <div id="transactionHistory" class="pending-transaction">
+        <h3>Transactions:</h3>
+        <div id="transactionItems"></div>
+    </div>
+
     <div class="feedback-container">
         <h3>Feedback</h3>
         <form id="feedbackForm">
@@ -484,7 +489,7 @@ if (!userDetails) {
     document.getElementById('userMessage').innerText = userDetails.message;
     document.getElementById('userId').innerText = userDetails.id;
     document.getElementById('userCoinsUtilization').innerText = userDetails.coinsUtil;
-    
+    renderTransactions(userDetails.transactions);
     const lastTranDate = new Date(userDetails.lastTranDate);
     const currentDate = new Date();
 
@@ -545,38 +550,6 @@ if (!userDetails) {
             const pendingTransactionItems = document.getElementById('pendingTransactionItems');
             const pendingTransactionTotal = document.getElementById('pendingTransactionTotal');
 
-            // pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
-            //     `<div>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
-            // ).join('');
-            // pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
-
-//             pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
-//     `<div>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
-// ).join('');
-
-// // Display order number on the right side in a big font
-// pendingTransactionItems.innerHTML += `
-//     <div style="text-align: center;">
-//         <div style="font-size: 14px;">Order No:</div>
-//         <div style="font-size: 24px;">${pendingTran.tOrderNum}</div>
-//     </div>`;
-// // Set the total amount
-// pendingTransactionTotal.textContent = `₹${pendingTran.tCoins.toFixed(2)}`;
-
-// Display items
-// pendingTransactionItems.innerHTML = pendingTran.items.map(item =>
-//     `<div style="color: #333;">${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
-// ).join('');
-
-// // Display order number in a small font at the top and the order number itself in a large font below it
-// pendingTransactionItems.innerHTML += `
-// <div>₹${pendingTran.tCoins.toFixed(2)}</div>
-
-//     <div style="text-align: center; margin-top: 20px;">
-//         <div style="font-size: 14px; color: #777;">Order No:</div>
-//         <div style="font-size: 24px; color: #333;">${pendingTran.tOrderNum}</div>
-//     </div>
-//     `;
 
 // Clear the existing content of pendingTransactionItems
 pendingTransactionItems.innerHTML = '';
@@ -699,6 +672,41 @@ feedbackForm.addEventListener('submit', (event) => {
     });
 });
     }
+
+    function renderTransactions(transactions) {
+    const transactionItemsElement = document.getElementById('transactionItems');
+    transactionItemsElement.innerHTML = ''; // Clear previous items
+
+    for (const key in transactions) {
+        if (transactions.hasOwnProperty(key)) {
+            const transaction = transactions[key];
+            const transactionElement = document.createElement('div');
+            transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
+            transactionElement.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="items">
+                            <strong>Items:</strong>
+                            <ul>
+                                ${transaction.items.map(item =>
+                                    `<li>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
+                        <div class="sender-info"><strong>To:</strong> ${transaction.tToName}</div>
+                        <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
+                    </div>
+                </div>
+            `;
+            transactionItemsElement.appendChild(transactionElement);
+        }
+    }
+}
+
+
   </script>
   </body>
   </html>

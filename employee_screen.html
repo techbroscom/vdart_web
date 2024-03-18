@@ -464,7 +464,7 @@
       const db = firebase.database();
 
       const loadingDiv = document.getElementById('loading');
-loadingDiv.style.display = 'block';
+    loadingDiv.style.display = 'block';
 
       
 
@@ -559,10 +559,14 @@ pendingTransactionItems.innerHTML += `
 <div class="row">
     <div class="col-6">
         ${pendingTran.items.map(item =>
-            `<div style="color: #333;">${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</div>`
+            `<div style="color: #333;">
+                <span style="color: #ff0000;">${item.name}</span> (Quantity: 
+                <span>${item.quantity}</span>, Price: 
+                <span style="color: #0000ff;">₹${item.price.toFixed(2)}</span>)
+            </div>`
         ).join('')}
         <div>
-            Total: ₹${pendingTran.tCoins.toFixed(2)}
+            Total: ₹<span style="font-weight: bold">${pendingTran.tCoins.toFixed(2)}</span>
         </div>
     </div>
     <div class="col-6">
@@ -572,6 +576,7 @@ pendingTransactionItems.innerHTML += `
         </div>
     </div>
 </div>`;
+
 
 
 
@@ -689,14 +694,15 @@ feedbackForm.addEventListener('submit', (event) => {
                             <strong>Items:</strong>
                             <ul>
                                 ${transaction.items.map(item =>
-                                    `<li>${item.name} (Quantity: ${item.quantity}, Price: ₹${item.price.toFixed(2)})</li>`
+                                    `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
                                 ).join('')}
                             </ul>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
-                        <div class="sender-info"><strong>To:</strong> ${transaction.tToName}</div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
                     </div>
                 </div>

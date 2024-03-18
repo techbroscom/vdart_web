@@ -182,6 +182,7 @@
                 <p id="userDetails"></p>
                 <button onclick="updateUserDetails()">Update Details</button>
                 <button onclick="updateUserPassword()">Reset Password</button>
+                <!-- <button onclick="updateUserBalance()">Update Balance</button> -->
             </div>
         </div>
 
@@ -467,7 +468,7 @@ function searchUser(event) {
                 <p><strong>User ID:</strong> ${userDetails.id}</p>
                 <p><strong>User Name:</strong> <input type="text" id="userNameInput" value="${userDetails.userName}"></p>
                 <p><strong>User Type:</strong> ${userDetails.userType}</p>
-                <p><strong>Balance:</strong> ${userDetails.balance}</p>
+                <p><strong>Balance:</strong> <input type="text" id="balance" value="${userDetails.balance}"></p>
                 <p><strong>Coins Utilized:</strong> <input type="text" id="coinsUtilInput" value="${userDetails.coinsUtil}"></p>
                 <p><strong>Location:</strong> <input type="text" id="userLoc" value="${userDetails.location}"></p>
                 <p><strong>Status:</strong>
@@ -494,12 +495,14 @@ function updateUserDetails() {
     var userId = document.getElementById('searchInput').value;
     var userName = document.getElementById('userNameInput').value;
     var loc = document.getElementById('userLoc').value;
+    var newBalance = parseInt(document.getElementById('balance').value);
     var coinsLimit = parseInt(document.getElementById('coinsUtilInput').value);
     var status = document.getElementById('statusInput').value;
 
     var newDetails = {
         userName: userName,
         coinsUtil: coinsLimit,
+        balance: newBalance,
         location: loc,
         status: status
         // Add other fields to update if needed
@@ -539,6 +542,26 @@ function updateUserPassword() {
         }
     });
 }
+
+// function updateUserBalance() {
+//     var userId = document.getElementById('searchInput').value;
+
+    
+
+//     var newDetails1 = {
+//         balance: passwrd
+//         // Add other fields to update if needed
+//     };
+//     var userDetailsRef = database.ref('userDetails/' + userId);
+//     userDetailsRef.update(newDetails1, function(error) {
+//         if (error) {
+//             alert('Failed to update balance');
+//         } else {
+//             addLog('Balance reset for user ' + userId);
+//             alert('User password updated successfully');
+//         }
+//     });
+// }
 
 function showEmployeeData() {
     var userDetailsRef = database.ref('userDetails');

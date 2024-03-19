@@ -768,11 +768,20 @@ const userRef = db.ref('userDetails').child(userDetails.id);
             }
         });
 
-        document.addEventListener('touchstart', function(event) {
-    if (event.touches[0].clientX < 10) { // Adjust the threshold as needed
-        event.preventDefault();
+        let startX = null;
+
+document.addEventListener('touchstart', function(event) {
+    startX = event.touches[0].clientX;
+});
+
+document.addEventListener('touchmove', function(event) {
+    if (startX < 10) {
+        let currentX = event.touches[0].clientX;
+        if (currentX - startX > 10) { // Adjust the threshold as needed
+            event.preventDefault();
+        }
     }
-}, { passive: false });
+});
   </script>
   </body>
   </html>

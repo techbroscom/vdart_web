@@ -407,7 +407,7 @@
 
     <!-- Store List -->
     <div class="store-list" style="display: none;">
-        <h3>Stores List:</h3>
+        <h3>Select Store:</h3>
         <ul id="storesList"></ul>
     </div>
 
@@ -443,22 +443,23 @@
   <!-- Firebase JavaScript SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="config.js"></script>
 
   <!-- Initialize Firebase -->
   <script>
-      const firebaseConfig = {
-    apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
-    authDomain: "vdarttest.firebaseapp.com",
-    projectId: "vdarttest",
-    storageBucket: "vdarttest.appspot.com",
-    messagingSenderId: "157342186908",
-    databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
-    appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
-    measurementId: "G-NVXLVD13D1"
-  };
+//       const firebaseConfig = {
+//     apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
+//     authDomain: "vdarttest.firebaseapp.com",
+//     projectId: "vdarttest",
+//     storageBucket: "vdarttest.appspot.com",
+//     messagingSenderId: "157342186908",
+//     databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
+//     appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
+//     measurementId: "G-NVXLVD13D1"
+//   };
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
+//       // Initialize Firebase
+//       firebase.initializeApp(firebaseConfig);
 
       // Reference to the Firebase database
       const db = firebase.database();
@@ -713,6 +714,7 @@ function renderTransactions(transactions) {
                                     ).join('')}
                                 </ul>
                             </div>
+                            <div class="total-coins"><strong>Date:</strong> ${transaction.tDate}</div>
                         </div>
                         <div class="col-md-3">
                             <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>

@@ -767,6 +767,42 @@ const userRef = db.ref('userDetails').child(userDetails.id);
                 renderTransactions(updatedUserDetails.transactions);
             }
         });
+
+        document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchmove', handleTouchMove, false);
+
+let xBot= null; 
+let yBot = null;
+
+function handleTouchStart(e) {                                         
+    xBot = e.touches[0].clientX;                                      
+    yBot = e.touches[0].clientY;                                      
+};                                                
+
+function handleTouchMove(e) {
+    if (!xBot || !yBot ) {
+        return;
+    }
+
+    let xTop = e.touches[0].clientX;                                    
+    let yTop = e.touches[0].clientY;
+
+    let xDiff = xBot - xUp;
+    let yDiff = yBot - yUp;
+
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
+        if ( xDiff > 0 ) {
+            /* left swipe */ 
+            e.preventDefault(); // Prevents swipe back action
+        } else {
+            /* right swipe */
+            e.preventDefault(); // Prevents swipe back action
+        }                       
+    } 
+    /* reset values */
+    xBot = null;
+    yBot = null;                                             
+};  
   </script>
   </body>
   </html>

@@ -81,7 +81,7 @@
     <h1>Menu Management</h1>
 
     <!-- Add New Item Form -->
-    <form id="addItemForm">
+    <!-- <form id="addItemForm">
         <div class="form-group">
             <label for="itemName">Item Name:</label>
             <input type="text" class="form-control" id="itemName" name="itemName" required>
@@ -91,7 +91,7 @@
             <input type="number" class="form-control" id="itemPrice" name="itemPrice" required>
         </div>
         <button type="submit" class="btn btn-primary">Add Item</button>
-    </form>
+    </form> -->
 
     <hr>
 
@@ -141,7 +141,7 @@
                 menuItem.innerHTML = `
                     <input type="checkbox" id="${itemId}" ${item.disabled ? 'disabled' : ''}>
                     <label for="${itemId}">${item.name} - $${item.price}</label>
-                    <button onclick="deleteItem('${storeId}', '${itemId}')" ${item.disabled ? 'disabled' : ''}>Delete</button>
+                    <!--<button onclick="deleteItem('${storeId}', '${itemId}')" ${item.disabled ? 'disabled' : ''}>Delete</button> -->
                     <button onclick="toggleItem('${storeId}', '${itemId}', ${item.disabled})">${item.disabled ? 'Enable' : 'Disable'}</button>
                 `;
                 menuItemsList.appendChild(menuItem);
@@ -173,30 +173,30 @@
         });
     }
 
-    // Function to add a new item to the menu
-    function addItem(itemName, itemPrice) {
-        const storeRef = db.ref(`stores/${storeId}/menu`);
-        storeRef.child(itemName).set({
-            name: itemName,
-            price: itemPrice,
-            disabled: false
-        }).then(() => {
-            console.log(`${itemName} added to menu`);
-            renderMenuItems(); // Refresh the menu items list
-        }).catch(error => {
-            console.error('Error adding item:', error);
-        });
-    }
+    // // Function to add a new item to the menu
+    // function addItem(itemName, itemPrice) {
+    //     const storeRef = db.ref(`stores/${storeId}/menu`);
+    //     storeRef.child(itemName).set({
+    //         name: itemName,
+    //         price: itemPrice,
+    //         disabled: false
+    //     }).then(() => {
+    //         console.log(`${itemName} added to menu`);
+    //         renderMenuItems(); // Refresh the menu items list
+    //     }).catch(error => {
+    //         console.error('Error adding item:', error);
+    //     });
+    // }
 
-    // Add event listener to the addItemForm
-    document.getElementById('addItemForm').addEventListener('submit', event => {
-        event.preventDefault();
-        const itemName = document.getElementById('itemName').value;
-        const itemPrice = document.getElementById('itemPrice').value;
-        addItem(itemName, itemPrice);
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemPrice').value = '';
-    });
+    // // Add event listener to the addItemForm
+    // document.getElementById('addItemForm').addEventListener('submit', event => {
+    //     event.preventDefault();
+    //     const itemName = document.getElementById('itemName').value;
+    //     const itemPrice = document.getElementById('itemPrice').value;
+    //     addItem(itemName, itemPrice);
+    //     document.getElementById('itemName').value = '';
+    //     document.getElementById('itemPrice').value = '';
+    // });
 
     // Call renderMenuItems to initially render the menu items
     renderMenuItems();

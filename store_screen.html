@@ -220,7 +220,7 @@
                         }).then(() => {
                             console.log('Transaction status updated to Cancelled');
                             db.ref('userDetails').child(transaction.tFrom).child('transactions').child(transactionId).update({
-                            tStatus: 'Delivered'
+                            tStatus: 'Cancelled'
                         }).then(() => {
                             transactionItem.remove();
                             initiateRefund(transaction);

@@ -597,7 +597,7 @@ pendingTransactionItems.innerHTML += `
 }
 
 function showStoreUi(){
-    document.getElementById('pendingTransaction').style.display = 'block';
+    document.getElementById('pendingTransaction').style.display = 'none';
     document.getElementById('loading').style.display = 'none';
 
     // If there is no pending order, display the store list
@@ -685,36 +685,43 @@ feedbackForm.addEventListener('submit', (event) => {
     });
 });
 
-    function renderTransactions(transactions) {
+function renderTransactions(transactions) {
     const transactionItemsElement = document.getElementById('transactionItems');
     transactionItemsElement.innerHTML = ''; // Clear previous items
 
-    for (const key in transactions) {
-        if (transactions.hasOwnProperty(key)) {
-            const transaction = transactions[key];
-            const transactionElement = document.createElement('div');
-            transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
-            transactionElement.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="items">
-                            <strong>Items:</strong>
-                            <ul>
-                                ${transaction.items.map(item =>
-                                    `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
-                                ).join('')}
-                            </ul>
+    if (typeof userDetails.transactions != 'object') {
+        const noTransactionsElement = document.createElement('div');
+        noTransactionsElement.classList.add('text-center', 'text-muted');
+        noTransactionsElement.textContent = 'No transactions found.';
+        transactionItemsElement.appendChild(noTransactionsElement);
+    } else {
+        for (const key in transactions) {
+            if (transactions.hasOwnProperty(key)) {
+                const transaction = transactions[key];
+                const transactionElement = document.createElement('div');
+                transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
+                transactionElement.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="items">
+                                <strong>Items:</strong>
+                                <ul>
+                                    ${transaction.items.map(item =>
+                                        `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
+                                    ).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
-                    </div>
-                </div>
-            `;
-            transactionItemsElement.appendChild(transactionElement);
+                `;
+                transactionItemsElement.appendChild(transactionElement);
+            }
         }
     }
 }
@@ -757,7 +764,7 @@ const userRef = db.ref('userDetails').child(userDetails.id);
                 // Display the store list
                 // You can implement this part as per your UI design
                 showStoreUi();
-                renderTransactions();
+                renderTransactions(updatedUserDetails.transactions);
             }
         });
   </script>

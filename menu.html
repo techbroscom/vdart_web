@@ -478,7 +478,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
                         console.error('Error adding transaction:', error);
                         throw error; // Re-throw
                     }).then(() => {
-
+                    
                     alert('Order placed! Total amount: $' + total);
                 // addTransactionToUser(userDetails.id, transaction);
                 total = 0;
@@ -486,6 +486,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
                 totalPrice.text('$0');
                 orderSummary.removeClass('show');
                 toggleSummary.removeClass('show');
+                localStorage.removeItem('storeDetails');
                 window.location.href = 'employee_screen.html';
                     });
                 });
@@ -548,22 +549,6 @@ userRef.once('value').then((snapshot) => {
     throw error; // Re-throw the error to propagate it
   });
 }
-
-let startX = null;
-
-document.addEventListener('touchstart', function(event) {
-    startX = event.touches[0].clientX;
-});
-
-document.addEventListener('touchmove', function(event) {
-    if (startX < 10) {
-        let currentX = event.touches[0].clientX;
-        if (currentX - startX > 10) { // Adjust the threshold as needed
-            event.preventDefault();
-        }
-    }
-});
-
 </script>
 </body>
 </html>

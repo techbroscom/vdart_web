@@ -549,6 +549,11 @@ userRef.once('value').then((snapshot) => {
   });
 }
 
+document.addEventListener('touchstart', function(event) {
+    if (event.touches[0].clientX < 10) { // Adjust the threshold as needed
+        event.preventDefault();
+    }
+}, { passive: false });
 
 </script>
 </body>

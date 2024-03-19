@@ -597,7 +597,7 @@ pendingTransactionItems.innerHTML += `
 }
 
 function showStoreUi(){
-    document.querySelector('.pendingTransaction').style.display = 'none';
+    document.getElementById('pendingTransaction').style.display = 'block';
     document.getElementById('loading').style.display = 'none';
 
     // If there is no pending order, display the store list

@@ -592,6 +592,11 @@ pendingTransactionItems.innerHTML += `
         }
     });
 } else {
+    showStoreUi();
+    }  
+}
+
+function showStoreUi(){
     document.getElementById('loading').style.display = 'none';
 
     // If there is no pending order, display the store list
@@ -640,23 +645,20 @@ storeItem.innerHTML = `
 }, error => {
     console.error('Error fetching stores:', error);
 });
+}
 
-        }
+var coinsLimit;
 
-        var coinsLimit;
-
-      var configRef = db.ref('config');
-        configRef.once('value', function(snapshot) {
-            var config = snapshot.val();
-            coinsLimit = config.coinsLimit;
-            localStorage.setItem('config', JSON.stringify(config));
-            if(userDetails.coinsUtil >= coinsLimit){
-            document.getElementById('limitReachedMsg').style.display = 'block';
-            document.querySelector('.store-list').style.display = 'none'; // Show the store list
-            } 
-        });
-    }
-
+var configRef = db.ref('config');
+  configRef.once('value', function(snapshot) {
+      var config = snapshot.val();
+      coinsLimit = config.coinsLimit;
+      localStorage.setItem('config', JSON.stringify(config));
+      if(userDetails.coinsUtil >= coinsLimit){
+      document.getElementById('limitReachedMsg').style.display = 'block';
+      document.querySelector('.store-list').style.display = 'none'; // Show the store list
+      } 
+  });
 
         // Feedback form submission event listener
 const feedbackForm = document.getElementById('feedbackForm');
@@ -753,6 +755,7 @@ const userRef = db.ref('userDetails').child(userDetails.id);
             } else {
                 // Display the store list
                 // You can implement this part as per your UI design
+                showStoreUi();
             }
         });
   </script>

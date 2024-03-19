@@ -159,6 +159,7 @@
         <a href="#" onclick="showContent('employee')">Employee Data</a>
         <a href="#" onclick="showContent('store')">Store Data</a>
         <a href="#" onclick="showContent('admin')">Admin Data</a>
+        <a href="#" onclick="showContent('storeMenu')">Store Menu</a>
         <a href="#" onclick="showContent('credit')">Credit Coins</a>
         <a href="#" onclick="showContent('createUser')">Add New User</a>
         <a href="#" onclick="showContent('tranHis')">Transaction History</a>
@@ -196,6 +197,18 @@
         <div id="store" style="display:none;">
             <h2>Store Data</h2>
             <p>This is the Settings content.</p>
+        </div>
+
+        <div id="storeMenu" style="display:none;">
+            <h2>Store Menu Data</h2>
+            <div>
+                <select id="storeSelect">
+                    <option>Select a store</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+            <div id="menuList"></div>
+
         </div>
 
         <div id="encashData" style="display:none;">
@@ -410,6 +423,8 @@
                 showEncashHistory();
             } else if (id === 'logs') {
                 showLogsHistory();
+            } else if (id === 'storeMenu') {
+                renderStores();
             }
 
             // Close the sidebar on mobile view
@@ -1378,6 +1393,99 @@ function showLogsHistory() {
         });
     });
 }
+
+// function renderStores() {
+//     var storesRef = firebase.database().ref("stores");
+
+//     storesRef.once("value", function(snapshot) {
+//         var storeSelect = document.getElementById("storeSelect");
+
+//         snapshot.forEach(function(childSnapshot) {
+//             var storeId = childSnapshot.key;
+//             var store = childSnapshot.val();
+//             var option = document.createElement("option");
+//             option.text = store.name;
+//             option.value = storeId;
+//             storeSelect.appendChild(option);
+//         });
+
+//         // Add event listener to listen for changes in the dropdown
+//         storeSelect.addEventListener("change", function() {
+//             var selectedStoreId = this.value;
+//             var selectedStore = snapshot.child(selectedStoreId).val();
+//             showMenuItems(selectedStore.menu);
+//         });
+//     }, function(error) {
+//         console.error("Error getting stores: ", error);
+//     });
+// }
+
+// function showMenuItems(menuItems) {
+//     var menuList = document.getElementById("menuList");
+//     if (!menuList) {
+//         console.error("Menu list element not found");
+//         return;
+//     }
+
+//     menuList.innerHTML = ""; // Clear previous menu items
+
+//     for (var menuItemKey in menuItems) {
+//         var menuItem = menuItems[menuItemKey];
+//         var menuItemElement = document.createElement("div");
+
+//         // Display the menu item name and price
+//         var itemInfo = document.createElement("span");
+//         itemInfo.textContent = menuItem.name + " - Price: " + menuItem.price;
+//         menuItemElement.appendChild(itemInfo);
+
+//         // Create an Edit button
+//         var editButton = document.createElement("button");
+//         editButton.textContent = "Edit";
+//         editButton.addEventListener("click", function(key) {
+//             return function() {
+//                 editMenuItem(key, menuItems[key]);
+//             };
+//         }(menuItemKey));
+//         menuItemElement.appendChild(editButton);
+
+//         // Create a Delete button
+//         var deleteButton = document.createElement("button");
+//         deleteButton.textContent = "Delete";
+//         deleteButton.addEventListener("click", function(key) {
+//             return function() {
+//                 deleteMenuItem(storeId, key); // Pass the storeId and menuItemKey
+//             };
+//         }(menuItemKey));
+//         menuItemElement.appendChild(deleteButton);
+
+//         menuList.appendChild(menuItemElement);
+//     }
+// }
+
+// function editMenuItem(storeId, menuItemKey, updatedName, updatedPrice) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+//     storeRef.update({
+//         name: updatedName,
+//         price: updatedPrice
+//     }).then(() => {
+//         console.log(`${menuItemKey} updated in menu`);
+//         renderMenuItems(); // Refresh the menu items list
+//     }).catch(error => {
+//         console.error('Error updating item:', error);
+//     });
+// }
+
+// function deleteMenuItem(storeId, menuItemKey) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu`);
+//     storeRef.child(menuItemKey).remove().then(() => {
+//         console.log(`${menuItemKey} deleted from menu`);
+//         renderMenuItems(); // Refresh the menu items list
+//     }).catch(error => {
+//         console.error('Error deleting item:', error);
+//     });
+// }
+
+
 
 </script>
 </body>

@@ -150,15 +150,15 @@
     }
 
     // Function to delete an item from the store's menu
-    function deleteItem(storeId, itemId) {
-        const storeRef = db.ref(`stores/${storeId}/menu`);
-        storeRef.child(itemId).remove().then(() => {
-            console.log(`${itemId} deleted from menu`);
-            renderMenuItems(); // Refresh the menu items list
-        }).catch(error => {
-            console.error('Error deleting item:', error);
-        });
-    }
+    // function deleteItem(storeId, itemId) {
+    //     const storeRef = db.ref(`stores/${storeId}/menu`);
+    //     storeRef.child(itemId).remove().then(() => {
+    //         console.log(`${itemId} deleted from menu`);
+    //         renderMenuItems(); // Refresh the menu items list
+    //     }).catch(error => {
+    //         console.error('Error deleting item:', error);
+    //     });
+    // }
 
     // Function to enable/disable an item from the store's menu
     function toggleItem(storeId, itemId, disabled) {
@@ -173,7 +173,7 @@
         });
     }
 
-    // // Function to add a new item to the menu
+    // Function to add a new item to the menu
     // function addItem(itemName, itemPrice) {
     //     const storeRef = db.ref(`stores/${storeId}/menu`);
     //     storeRef.child(itemName).set({

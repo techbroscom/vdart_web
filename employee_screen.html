@@ -483,6 +483,7 @@ logoutButton.addEventListener('click', () => {
 const userDetails = JSON.parse(localStorage.getItem('userDetails'));
 if (!userDetails) {
     console.log('User details not found');
+    window.location.href = 'index.html';
 } else {
     document.getElementById('userName').innerText = userDetails.userName;
     document.getElementById('userBalance').innerText = userDetails.balance;
@@ -495,7 +496,8 @@ if (!userDetails) {
 
     if (lastTranDate.toDateString() === currentDate.toDateString()) {
         console.log('lastTranDate is the current date.');
-    } else if(lastTranDate.toDateString() != currentDate.toDateString() && userDetails.coinsUtil!=0){
+    } 
+    else if(lastTranDate.toDateString() != currentDate.toDateString() && userDetails.coinsUtil!=0){
         userDetails.coinsUtil = 0;
 
         db.ref('userDetails/' + userDetails.id).update({
@@ -653,6 +655,9 @@ storeItem.innerHTML = `
             document.querySelector('.store-list').style.display = 'none'; // Show the store list
             } 
         });
+    }
+
+
         // Feedback form submission event listener
 const feedbackForm = document.getElementById('feedbackForm');
 feedbackForm.addEventListener('submit', (event) => {
@@ -676,7 +681,6 @@ feedbackForm.addEventListener('submit', (event) => {
         alert('An error occurred. Please try again.');
     });
 });
-    }
 
     function renderTransactions(transactions) {
     const transactionItemsElement = document.getElementById('transactionItems');
@@ -712,7 +716,45 @@ feedbackForm.addEventListener('submit', (event) => {
     }
 }
 
+// // Assuming userDetails is an object containing the user details
+// const userRef = db.ref('userDetails').child(userDetails.id);
 
+// // Listen for changes in user details in Firebase
+// userRef.on('value', (snapshot) => {
+//     const updatedUserDetails = snapshot.val();
+
+//     // Update userDetails in local storage
+//     localStorage.setItem('userDetails', JSON.stringify(updatedUserDetails));
+
+//     // Update the UI
+//     window.location.reload();
+// });
+
+const userRef = db.ref('userDetails').child(userDetails.id);
+
+        // Listen for changes in user details in Firebase
+        userRef.on('value', (snapshot) => {
+            const updatedUserDetails = snapshot.val();
+
+            // Update userDetails in local storage
+            localStorage.setItem('userDetails', JSON.stringify(updatedUserDetails));
+
+            // Update the UI without reloading the page
+            document.getElementById('userName').innerText = updatedUserDetails.userName;
+            document.getElementById('userBalance').innerText = updatedUserDetails.balance;
+            document.getElementById('userMessage').innerText = updatedUserDetails.message;
+            document.getElementById('userId').innerText = updatedUserDetails.id;
+            document.getElementById('userCoinsUtilization').innerText = updatedUserDetails.coinsUtil;
+
+            // If there is a pending order, update the UI accordingly
+            if (updatedUserDetails.isOrderPending) {
+                // Display the pending transaction details
+                // You can implement this part as per your UI design
+            } else {
+                // Display the store list
+                // You can implement this part as per your UI design
+            }
+        });
   </script>
   </body>
   </html>

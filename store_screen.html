@@ -201,6 +201,9 @@
                             console.log('Transaction status updated to Delivered');
                             // Remove the transaction from the list
                             transactionItem.remove();
+                            db.ref('userDetails').child(transaction.tFrom).child('transactions').child(transactionId).update({
+                            tStatus: 'Delivered'
+                        });
                         }).catch(error => {
                             console.error('Error updating transaction status:', error);
                         });
@@ -216,9 +219,13 @@
                             tStatus: 'Cancelled'
                         }).then(() => {
                             console.log('Transaction status updated to Cancelled');
-                            // Remove the transaction from the list
+                            db.ref('userDetails').child(transaction.tFrom).child('transactions').child(transactionId).update({
+                            tStatus: 'Delivered'
+                        }).then(() => {
                             transactionItem.remove();
                             initiateRefund(transaction);
+                        })
+                            // Remove the transaction from the list
                         }).catch(error => {
                             console.error('Error updating transaction status:', error);
                         });

@@ -562,8 +562,8 @@ pendingTransactionItems.innerHTML += `
     <div class="col-6">
         ${pendingTran.items.map(item =>
             `<div style="color: #333;">
-                <span style="color: #ff0000;">${item.name}</span> (Quantity: 
-                <span>${item.quantity}</span>, Price: 
+                <span style="color: #ff0000;">${item.name}</span> (Qty: 
+                <span>${item.quantity}</span>,  
                 <span style="color: #0000ff;">₹${item.price.toFixed(2)}</span>)
             </div>`
         ).join('')}
@@ -695,6 +695,8 @@ function renderTransactions(transactions) {
         noTransactionsElement.textContent = 'No transactions found.';
         transactionItemsElement.appendChild(noTransactionsElement);
     } else {
+        const keys = Object.keys(transactions).reverse(); // Reverse the order of keys
+
         for (const key in transactions) {
             if (transactions.hasOwnProperty(key)) {
                 const transaction = transactions[key];

@@ -74,13 +74,14 @@
         <button id="homeButton" class="btn btn-outline-light">Home</button>
         <button id="tranHisButton" class="btn btn-outline-light">Transaction</button>
         <button id="menuButton" class="btn btn-outline-light">Menu</button>
+        <button id="myButton" class="btn btn-outline-light" onclick="resetOrderCounter()">Reset Order Number</button>
         <button id="logoutButton" class="btn btn-outline-light">Logout</button>
     </nav>
 
 <div class="container">
     <!-- Pending Transaction Details -->
     <div class="pending-transactions">
-        <h3>Pending Transactions:</h3>
+        <h3>Pending Transactions:</h3> 
         <ul id="pendingTransactionsList"></ul>
     </div>
 
@@ -442,6 +443,18 @@ userRef.once('value').then(function(snapshot) {
 });
 }
 
+function resetOrderCounter() {
+    var firebaseRef =db.ref('stores/'+storeDetails.id); // Update 'your-node-path' with the actual path to your orderCounter
+
+// Set the orderCounter value to 0
+firebaseRef.child('orderCounter').set(0)
+    .then(() => {
+        alert('Order counter reset successfully.');
+    })
+    .catch((error) => {
+        console.error('Error resetting order counter:', error);
+    });
+}
 
 </script>
 

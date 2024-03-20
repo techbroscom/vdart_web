@@ -403,7 +403,7 @@ const orderNum = storeDetails.orderCounter + 1;
         tType: 'order', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
         tStatus: 'Pending',
         tDate: formattedDate,
-        tOrderNum: orderNum
+        tOrderNum: userDetails.id+'-'+orderNum
     };
 
     $('#order-list li').each(function() {

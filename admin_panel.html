@@ -1088,6 +1088,7 @@ function handleSubmitCreateUsers(event) {
           id: user.userId,
           name: user.userName,
           location: user.location,
+          orderCounter: 0,
           menu: {} // Initialize an empty menu
         }).then(function() {
           console.log('Store created successfully:', user.userId);

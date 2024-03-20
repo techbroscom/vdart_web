@@ -1237,7 +1237,8 @@ function generateTransactionId() {
     const hours = ('0' + currentDateTime.getHours()).slice(-2);
     const minutes = ('0' + currentDateTime.getMinutes()).slice(-2);
     const seconds = ('0' + currentDateTime.getSeconds()).slice(-2);
-    return `${year}${month}${date}${hours}${minutes}${seconds}`;
+    const milliseconds = ('00' + currentDateTime.getMilliseconds()).slice(-3);
+    return `${year}${month}${date}${hours}${minutes}${seconds}${milliseconds}`;
 }
 
 function showCreditTransactionHistory() {

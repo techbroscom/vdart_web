@@ -984,7 +984,7 @@ document.getElementById('creditForm').addEventListener('submit', function(event)
         var coins = parseInt(document.getElementById('coinsInput').value);
         var addWithExistingBalance = document.getElementById('addWithExistingBalance').checked;
 
-        if (!location || isNaN(coins) || coins <= 0) {
+        if (!location || isNaN(coins) || coins < 0) {
             alert('Please select a location and enter a valid number of coins.');
             return;
         }

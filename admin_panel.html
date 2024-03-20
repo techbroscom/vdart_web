@@ -1189,19 +1189,21 @@ document.getElementById('downloadButtonTransactions').addEventListener('click', 
                 const storeTransactions = transactions[storeId];
                 for (let transactionId in storeTransactions) {
                     const transaction = storeTransactions[transactionId];
-                    const date = transaction.tDate.split(' ')[0]; // Extract date part
+                    if (transaction.tStatus === 'Delivered') {
+                        const date = transaction.tDate.split(' ')[0]; // Extract date part
 
-                    if (!summarySheetData[date]) {
-                        summarySheetData[date] = {};
+                        if (!summarySheetData[date]) {
+                            summarySheetData[date] = {};
+                        }
+                        if (!summarySheetData[date][storeId]) {
+                            summarySheetData[date][storeId] = {
+                                Date: date,
+                                Store: storeId,    
+                                TotalCoins: 0
+                            };
+                        }
+                        summarySheetData[date][storeId].TotalCoins += transaction.tCoins;
                     }
-                    if (!summarySheetData[date][storeId]) {
-                        summarySheetData[date][storeId] = {
-                            Date: date,
-                            Store: storeId,
-                            TotalCoins: 0
-                        };
-                    }
-                    summarySheetData[date][storeId].TotalCoins += transaction.tCoins;
                 }
             }
 

@@ -506,7 +506,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
                         throw error; // Re-throw
                     }).then(() => {
                     
-                    alert('Order placed! Total amount: $' + total);
+                    alert('Order placed! Total amount: ₹' + total);
                 // addTransactionToUser(userDetails.id, transaction);
                 total = 0;
                 orderList.empty();

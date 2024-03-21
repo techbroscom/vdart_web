@@ -639,7 +639,7 @@ storeItem.innerHTML = `
             localStorage.setItem('menuItems', JSON.stringify(store.menu));
             localStorage.setItem('storeDetails', JSON.stringify(store));
             // Navigate to the next page with store details and menu items
-            window.location.replace = 'menu.html';
+            window.location.replace('menu.html');
         });
         storesList.appendChild(storeItem);
         }

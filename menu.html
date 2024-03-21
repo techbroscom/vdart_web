@@ -238,7 +238,7 @@ const userDetails = JSON.parse(localStorage.getItem('userDetails'));
 const config = JSON.parse(localStorage.getItem('config'))
 if (!userDetails) {
     console.log('User details not found');
-    window.location.href = 'index.html';
+    window.location.replace = 'index.html';
 } else {
     // Display user details in the order summary
     $('#userName').text(userDetails.userName);
@@ -247,7 +247,7 @@ if (!userDetails) {
 
 if(userDetails.isOrderPending){
     console.log('Order already pending...');
-    window.location.href = 'employee_screen.html';
+    window.location.replace = 'employee_screen.html';
 }
 
 
@@ -514,7 +514,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
                 orderSummary.removeClass('show');
                 toggleSummary.removeClass('show');
                 localStorage.removeItem('storeDetails');
-                window.location.href = 'employee_screen.html';
+                window.location.replace = 'employee_screen.html';
                     });
                 });
             }).catch(error => {
@@ -725,7 +725,7 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
       const backButton = document.getElementById('backToHomeButton');
       backButton.addEventListener('click', () => {
         // Redirect to the login page
-        window.location.href = 'employee_screen.html';
+        window.location.replace = 'employee_screen.html';
         });
 
 

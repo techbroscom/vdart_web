@@ -253,42 +253,50 @@ if(userDetails.isOrderPending){
 
 // Display menu items
 const menuItems = JSON.parse(localStorage.getItem('menuItems'));
-if (!menuItems) {
-    console.log('Menu items not found');
-} else {
-    const menuContainer = $('#menuItems');
-    menuContainer.empty(); // Clear previous menu items
-    Object.values(menuItems).forEach(menuItem => {
-        const disabledClass = menuItem.disabled ? 'disabled' : '';
-        const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
-        const menuItemElement = `
-        <div class="col-md-4">
-                <div class="card ${disabledClass}">
-                    <div class="card-body">
-                        <div class="row">
-        <div class="col">
-            <h5 class="card-title">${menuItem.name}</h5>
-        </div>
-        <div class="col-auto ml-auto">
-            ${outOfStockMessage}
-        </div>
-    </div>
-                        <div class="d-flex justify-content-between align-items-center">
-        <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
-        <div class="quantity-input d-flex align-items-center">
-            <button class="btn btn-outline-secondary decrease-quantity">-</button>
-            <span class="quantity-display">1</span>
-            <button class="btn btn-outline-secondary increase-quantity">+</button>
-        </div>
-        <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
-                    </div>
-                </div>
-                </div>
-            </div>
-        `;
-        menuContainer.append(menuItemElement);
-    });
-}
+
+renderMenu(menuItems);
+
+// function renderMenu(menuItems){
+//     if (!menuItems) {
+//     console.log('Menu items not found');
+// } else {
+//     const menuContainer = $('#menuItems');
+//     menuContainer.empty(); // Clear previous menu items
+//     Object.values(menuItems).forEach(menuItem => {
+//         const disabledClass = menuItem.disabled ? 'disabled' : '';
+//         const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
+//         const menuItemElement = `
+//         <div class="col-md-4">
+//                 <div class="card ${disabledClass}">
+//                     <div class="card-body">
+//                         <div class="row">
+//         <div class="col">
+//             <h5 class="card-title">${menuItem.name}</h5>
+//         </div>
+//         <div class="col-auto ml-auto">
+//             ${outOfStockMessage}
+//         </div>
+//     </div>
+//                         <div class="d-flex justify-content-between align-items-center">
+//         <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
+//         <div class="quantity-input d-flex align-items-center">
+//             <button class="btn btn-outline-secondary decrease-quantity">-</button>
+//             <span class="quantity-display">1</span>
+//             <button class="btn btn-outline-secondary increase-quantity">+</button>
+//         </div>
+//         <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
+//                     </div>
+//                 </div>
+//                 </div>
+//             </div>
+//         `;
+//         menuContainer.append(menuItemElement);
+//     });
+// }
+// }
+
+
+
 
 $('.decrease-quantity').click(function() {
             const input = $(this).siblings('.quantity-display');
@@ -756,6 +764,78 @@ userRef.once('value').then((snapshot) => {
     console.error('Error adding transaction:', error);
     throw error; // Re-throw the error to propagate it
   });
+}
+const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
+
+const menuRef = firebase.database().ref('stores').child(storeDetails.id).child('menu');
+
+        // Listen for changes in user details in Firebase
+        menuRef.on('value', (snapshot) => {
+            const updatedMenuDetails = snapshot.val();
+            renderMenu(updatedMenuDetails);
+        });
+
+        function renderMenu(menuItems) {
+    if (!menuItems) {
+        console.log('Menu items not found');
+        return;
+    }
+
+    const enabledItems = [];
+    const disabledItems = [];
+
+    // Grouping enabled and disabled items
+    Object.values(menuItems).forEach(menuItem => {
+        if (menuItem.disabled) {
+            disabledItems.push(menuItem);
+        } else {
+            enabledItems.push(menuItem);
+        }
+    });
+
+    const menuContainer = $('#menuItems');
+    menuContainer.empty(); // Clear previous menu items
+
+    // Render enabled items
+    enabledItems.forEach(menuItem => {
+        renderMenuItem(menuItem, menuContainer);
+    });
+
+    // Render disabled items
+    disabledItems.forEach(menuItem => {
+        renderMenuItem(menuItem, menuContainer);
+    });
+}
+
+function renderMenuItem(menuItem, container) {
+    const disabledClass = menuItem.disabled ? 'disabled' : '';
+    const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
+    const menuItemElement = `
+        <div class="col-md-4">
+            <div class="card ${disabledClass}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <h5 class="card-title">${menuItem.name}</h5>
+                        </div>
+                        <div class="col-auto ml-auto">
+                            ${outOfStockMessage}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
+                        <div class="quantity-input d-flex align-items-center">
+                            <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                            <span class="quantity-display">1</span>
+                            <button class="btn btn-outline-secondary increase-quantity">+</button>
+                        </div>
+                        <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    container.append(menuItemElement);
 }
 </script>
 </body>

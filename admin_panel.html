@@ -1212,6 +1212,11 @@ document.getElementById('downloadButtonTransactions').addEventListener('click', 
             const summarySheet = XLSX.utils.json_to_sheet(flatSummarySheetData);
             XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
 
+            // Add sheet for all transactions
+            const allTransactions = Object.values(transactions).reduce((acc, val) => acc.concat(Object.values(val)), []);
+            const allTransactionsSheet = XLSX.utils.json_to_sheet(allTransactions);
+            XLSX.utils.book_append_sheet(wb, allTransactionsSheet, 'All Transactions');
+
             // Save the Excel file
             XLSX.writeFile(wb, 'transaction_history.xlsx');
         } else {
@@ -1219,6 +1224,7 @@ document.getElementById('downloadButtonTransactions').addEventListener('click', 
         }
     });
 });
+
 
 function logout(){
     if (confirm('Are you sure you want to logout?')) {

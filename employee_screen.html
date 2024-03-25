@@ -599,6 +599,118 @@ pendingTransactionItems.innerHTML += `
     }  
 }
 
+// function showStoreUi(){
+//     document.getElementById('pendingTransaction').style.display = 'none';
+//     document.getElementById('loading').style.display = 'none';
+
+//     // If there is no pending order, display the store list
+
+//     const storesListRef = db.ref('stores');
+//     storesListRef.on('value', snapshot => {
+//     const stores = snapshot.val();
+//     const storesList = document.getElementById('storesList');
+//     const noStoresMessage = document.getElementById('noStoresMessage');
+//     storesList.innerHTML = ''; // Clear previous list
+//     if (!stores) {
+//         noStoresMessage.style.display = 'block'; // Show message
+//         console.log('No stores found in the database');
+//         return;
+//     }
+//     document.querySelector('.store-list').style.display = 'block'; // Show the store list
+//     let storesFound = false;
+//     for (let storeKey in stores) {
+//         const store = stores[storeKey];
+//         if(store.location === userDetails.location){
+//             const storeItem = document.createElement('div');
+// storeItem.className = 'card mb-3';
+// storeItem.style.cursor = 'pointer';
+// storeItem.innerHTML = `
+// <div class="card-body">
+//                     <div class="row">
+//                         <div class="col-2">
+//                             <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
+//                         </div>
+//                         <div class="col-10">
+//                             <h5 class="card-title">${store.name}</h5>
+//                             <p class="card-text">${store.location}</p>
+//                         </div>
+//                     </div>
+//                 </div>`;
+//         storeItem.addEventListener('click', () => {
+//             // Store the menu items for the selected store in localStorage
+//             localStorage.setItem('menuItems', JSON.stringify(store.menu));
+//             localStorage.setItem('storeDetails', JSON.stringify(store));
+//             // Navigate to the next page with store details and menu items
+//             window.location.replace('menu.html');
+//         });
+//         storesList.appendChild(storeItem);
+//         }
+//         if(userDetails.location === 'VD-MP' || userDetails.location === 'VD-MP-DAY' || userDetails.location === 'VD-MP-VDSS'){
+
+//         }
+//     }
+// }, error => {
+//     console.error('Error fetching stores:', error);
+// });
+// }
+
+// function showStoreUi(){
+//     document.getElementById('pendingTransaction').style.display = 'none';
+//     document.getElementById('loading').style.display = 'none';
+
+//     // If there is no pending order, display the store list
+
+//     const storesListRef = db.ref('stores');
+//     storesListRef.on('value', snapshot => {
+//     const stores = snapshot.val();
+//     const storesList = document.getElementById('storesList');
+//     const noStoresMessage = document.getElementById('noStoresMessage');
+//     storesList.innerHTML = ''; // Clear previous list
+//     if (!stores) {
+//         noStoresMessage.style.display = 'block'; // Show message
+//         console.log('No stores found in the database');
+//         return;
+//     }
+//     document.querySelector('.store-list').style.display = 'block'; // Show the store list
+//     let storesFound = false;
+//     for (let storeKey in stores) {
+//         const store = stores[storeKey];
+//         if(['VD-MP', 'VD-MP-DAY', 'VD-MP-VDSS'].includes(userDetails.location) && store.location === 'VD-MP'){
+//             const storeItem = document.createElement('div');
+//             storeItem.className = 'card mb-3';
+//             storeItem.style.cursor = 'pointer';
+//             storeItem.innerHTML = `
+//             <div class="card-body">
+//                 <div class="row">
+//                     <div class="col-2">
+//                         <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
+//                     </div>
+//                     <div class="col-10">
+//                         <h5 class="card-title">${store.name}</h5>
+//                         <p class="card-text">${store.location}</p>
+//                     </div>
+//                 </div>
+//             </div>`;
+//             storeItem.addEventListener('click', () => {
+//                 // Store the menu items for the selected store in localStorage
+//                 localStorage.setItem('menuItems', JSON.stringify(store.menu));
+//                 localStorage.setItem('storeDetails', JSON.stringify(store));
+//                 // Navigate to the next page with store details and menu items
+//                 window.location.replace('menu.html');
+//             });
+//             storesList.appendChild(storeItem);
+//             storesFound = true;
+//         }
+//     }
+//     if (!storesFound) {
+//         noStoresMessage.style.display = 'block'; // Show message
+//         console.log('No stores found in the database for the user location:', userDetails.location);
+//     }
+// }, error => {
+//     console.error('Error fetching stores:', error);
+// });
+// }
+
 function showStoreUi(){
     document.getElementById('pendingTransaction').style.display = 'none';
     document.getElementById('loading').style.display = 'none';
@@ -620,36 +732,68 @@ function showStoreUi(){
     let storesFound = false;
     for (let storeKey in stores) {
         const store = stores[storeKey];
-        if(store.location === userDetails.location){
+        if(['vd-mp', 'vd-mp-day', 'vd-mp-vdss'].includes(userDetails.location.toLowerCase()) && store.location.toLowerCase() === 'vd-mp'){
             const storeItem = document.createElement('div');
-storeItem.className = 'card mb-3';
-storeItem.style.cursor = 'pointer';
-storeItem.innerHTML = `
-<div class="card-body">
-                    <div class="row">
-                        <div class="col-2">
-                            <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
-                        </div>
-                        <div class="col-10">
-                            <h5 class="card-title">${store.name}</h5>
-                            <p class="card-text">${store.location}</p>
-                        </div>
+            storeItem.className = 'card mb-3';
+            storeItem.style.cursor = 'pointer';
+            storeItem.innerHTML = `
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-2">
+                        <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
                     </div>
-                </div>`;
-        storeItem.addEventListener('click', () => {
-            // Store the menu items for the selected store in localStorage
-            localStorage.setItem('menuItems', JSON.stringify(store.menu));
-            localStorage.setItem('storeDetails', JSON.stringify(store));
-            // Navigate to the next page with store details and menu items
-            window.location.replace('menu.html');
-        });
-        storesList.appendChild(storeItem);
+                    <div class="col-10">
+                        <h5 class="card-title">${store.name}</h5>
+                        <p class="card-text">${store.location}</p>
+                    </div>
+                </div>
+            </div>`;
+            storeItem.addEventListener('click', () => {
+                // Store the menu items for the selected store in localStorage
+                localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                localStorage.setItem('storeDetails', JSON.stringify(store));
+                // Navigate to the next page with store details and menu items
+                window.location.replace('menu.html');
+            });
+            storesList.appendChild(storeItem);
+            storesFound = true;
+        } else if (store.location === userDetails.location && userDetails.location.toLowerCase() !== 'vd-mp') {
+            // Display stores from other locations
+            const storeItem = document.createElement('div');
+            storeItem.className = 'card mb-3';
+            storeItem.style.cursor = 'pointer';
+            storeItem.innerHTML = `
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-2">
+                        <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
+                    </div>
+                    <div class="col-10">
+                        <h5 class="card-title">${store.name}</h5>
+                        <p class="card-text">${store.location}</p>
+                    </div>
+                </div>
+            </div>`;
+            storeItem.addEventListener('click', () => {
+                // Store the menu items for the selected store in localStorage
+                localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                localStorage.setItem('storeDetails', JSON.stringify(store));
+                // Navigate to the next page with store details and menu items
+                window.location.replace('menu.html');
+            });
+            storesList.appendChild(storeItem);
+            storesFound = true;
         }
+    }
+    if (!storesFound) {
+        noStoresMessage.style.display = 'block'; // Show message
+        console.log('No stores found in the database for the user location:', userDetails.location);
     }
 }, error => {
     console.error('Error fetching stores:', error);
 });
 }
+
 
 var coinsLimit;
 

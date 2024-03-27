@@ -216,19 +216,6 @@
             toggleSummary.toggleClass('show');
         });
 
-//         const firebaseConfig = {
-//   apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
-//   authDomain: "vdarttest.firebaseapp.com",
-//   projectId: "vdarttest",
-//   storageBucket: "vdarttest.appspot.com",
-//   messagingSenderId: "157342186908",
-//   databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
-//   appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
-//   measurementId: "G-NVXLVD13D1"
-// };
-  
-//     // Initialize Firebase
-//     firebase.initializeApp(firebaseConfig);
 
     // Get a reference to the database service
     const database = firebase.database();
@@ -253,69 +240,8 @@ if(userDetails.isOrderPending){
 
 // Display menu items
 const menuItems = JSON.parse(localStorage.getItem('menuItems'));
+
 renderMenu(menuItems);
-function renderMenu(menuItems) {
-    if (!menuItems) {
-        console.log('Menu items not found');
-        return;
-    }
-
-    const enabledItems = [];
-    const disabledItems = [];
-
-    // Grouping enabled and disabled items
-    Object.values(menuItems).forEach(menuItem => {
-        if (menuItem.disabled) {
-            disabledItems.push(menuItem);
-        } else {
-            enabledItems.push(menuItem);
-        }
-    });
-
-    const menuContainer = $('#menuItems');
-    menuContainer.empty(); // Clear previous menu items
-
-    // Render enabled items
-    enabledItems.forEach(menuItem => {
-        renderMenuItem(menuItem, menuContainer);
-    });
-
-    // Render disabled items
-    disabledItems.forEach(menuItem => {
-        renderMenuItem(menuItem, menuContainer);
-    });
-}
-
-function renderMenuItem(menuItem, container) {
-    const disabledClass = menuItem.disabled ? 'disabled' : '';
-    const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
-    const menuItemElement = `
-        <div class="col-md-4">
-            <div class="card ${disabledClass}">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <h5 class="card-title">${menuItem.name}</h5>
-                        </div>
-                        <div class="col-auto ml-auto">
-                            ${outOfStockMessage}
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
-                        <div class="quantity-input d-flex align-items-center">
-                            <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                            <span class="quantity-display">1</span>
-                            <button class="btn btn-outline-secondary increase-quantity">+</button>
-                        </div>
-                        <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    container.append(menuItemElement);
-}
 
 
 $('.decrease-quantity').click(function() {
@@ -403,14 +329,6 @@ function generateTransactionId() {
 
 const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
 
-
-      // Logout button event listener
-      const backButton = document.getElementById('backToHomeButton');
-      backButton.addEventListener('click', () => {
-        // Redirect to the login page
-        window.location.replace('employee_screen.html');
-        });
-
         $('.btn-success').prop('disabled', true);
 
         $('.btn-success').click(function() {
@@ -433,22 +351,21 @@ const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
     const transactionId = generateTransactionId();
     const currentDate = new Date();
 
-const day = String(currentDate.getDate()).padStart(2, '0');
-const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-const year = currentDate.getFullYear();
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const year = currentDate.getFullYear();
 
-const hours = String(currentDate.getHours()).padStart(2, '0');
-const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+    const hours = String(currentDate.getHours()).padStart(2, '0');
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+    const seconds = String(currentDate.getSeconds()).padStart(2, '0');
 
-const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-const orderNum = storeDetails.orderCounter + 1;
+    const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    const orderNum = storeDetails.orderCounter + 1;
     const transaction = {
         items: [],
         tCoins: total,
         tFrom: userDetails.id,
         tFromName: userDetails.userName,
-        tUserLoc: userDetails.location,
         tTo: storeDetails.id, // Assuming this is the store ID or some identifier
         tToName: storeDetails.name, // Assuming this is the store name
         tId: transactionId, // Generating a unique ID with a timestamp
@@ -553,9 +470,9 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
             console.error('Error adding transaction: ', error);
             alert('Failed to place order. Please try again.');
         });
+
     });
-
-
+});
     $('.close-summary').click(function() {
             orderSummary.removeClass('show');
             toggleSummary.removeClass('show');
@@ -566,6 +483,78 @@ transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
             return false;
         }
     };
+
+function renderMenu(menuItems) {
+    if (!menuItems) {
+        console.log('Menu items not found');
+        return;
+    }
+
+    const enabledItems = [];
+    const disabledItems = [];
+
+    // Grouping enabled and disabled items
+    Object.values(menuItems).forEach(menuItem => {
+        if (menuItem.disabled) {
+            disabledItems.push(menuItem);
+        } else {
+            enabledItems.push(menuItem);
+        }
+    });
+
+    const menuContainer = $('#menuItems');
+    menuContainer.empty(); // Clear previous menu items
+
+    // Render enabled items
+    enabledItems.forEach(menuItem => {
+        renderMenuItem(menuItem, menuContainer);
+    });
+
+    // Render disabled items
+    disabledItems.forEach(menuItem => {
+        renderMenuItem(menuItem, menuContainer);
+    });
+}
+
+function renderMenuItem(menuItem, container) {
+    const disabledClass = menuItem.disabled ? 'disabled' : '';
+    const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
+    const menuItemElement = `
+        <div class="col-md-4">
+            <div class="card ${disabledClass}">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <h5 class="card-title">${menuItem.name}</h5>
+                        </div>
+                        <div class="col-auto ml-auto">
+                            ${outOfStockMessage}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
+                        <div class="quantity-input d-flex align-items-center">
+                            <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                            <span class="quantity-display">1</span>
+                            <button class="btn btn-outline-secondary increase-quantity">+</button>
+                        </div>
+                        <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    container.append(menuItemElement);
+}
+
+const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
+
+const menuRef = firebase.database().ref('stores').child(storeDetails.id);
+
+// Listen for changes in user details in Firebase
+menuRef.on('value', (snapshot) => {
+    const updatedMenuDetails = snapshot.val();
+    renderMenu(updatedMenuDetails.menu);
 });
 
       // Logout button event listener

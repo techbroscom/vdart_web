@@ -757,7 +757,11 @@ function showStoreUi(){
             });
             storesList.appendChild(storeItem);
             storesFound = true;
-        } else if (store.location === userDetails.location && userDetails.location.toLowerCase() !== 'vd-mp') {
+        } else if (store.location === userDetails.location && (
+    userDetails.location.toLowerCase() !== 'vd-mp' &&
+    userDetails.location.toLowerCase() !== 'vd-mp-day' &&
+    userDetails.location.toLowerCase() !== 'vd-mp-vdss'
+  )) {
             // Display stores from other locations
             const storeItem = document.createElement('div');
             storeItem.className = 'card mb-3';

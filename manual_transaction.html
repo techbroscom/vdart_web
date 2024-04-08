@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Form</title>
+</head>
+<body>
+    <h1>Transaction Form</h1>
+    <form id="transactionForm">
+        <label for="total">Total Coins:</label><br>
+        <input type="text" id="total" name="total"><br>
+
+        <label for="userDetailsId">User Details ID:</label><br>
+        <input type="text" id="userDetailsId" name="userDetailsId"><br>
+
+        <label for="userName">User Name:</label><br>
+        <input type="text" id="userName" name="userName"><br>
+
+        <label for="userLocation">User Location:</label><br>
+        <input type="text" id="userLocation" name="userLocation"><br>
+
+        <label for="storeDetailsId">Store Details ID:</label><br>
+        <input type="text" id="storeDetailsId" name="storeDetailsId"><br>
+
+        <label for="storeDetailsName">Store Details Name:</label><br>
+        <input type="text" id="storeDetailsName" name="storeDetailsName"><br>
+
+        <label for="transactionId">Transaction ID:</label><br>
+        <input type="text" id="transactionId" name="transactionId"><br>
+
+        <label for="formattedDate">Formatted Date:</label><br>
+        <input type="text" id="formattedDate" name="formattedDate"><br>
+
+        <label for="orderNum">Order Number:</label><br>
+        <input type="text" id="orderNum" name="orderNum"><br>
+
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="config.js"></script>
+    <script>
+    const database = firebase.database();
+
+
+        function submitForm() {
+            const total = document.getElementById('total').value;
+            const userDetailsId = document.getElementById('userDetailsId').value;
+            const userName = document.getElementById('userName').value;
+            const userLocation = document.getElementById('userLocation').value;
+            const storeDetailsId = document.getElementById('storeDetailsId').value;
+            const storeDetailsName = document.getElementById('storeDetailsName').value;
+            const transactionId = document.getElementById('transactionId').value;
+            const formattedDate = document.getElementById('formattedDate').value;
+            const orderNum = document.getElementById('orderNum').value;
+
+            const transaction = {
+                items: [],
+                tCoins: total,
+                tFrom: userDetailsId,
+                tFromName: userName,
+                tUserLoc: userLocation,
+                tTo: storeDetailsId,
+                tToName: storeDetailsName,
+                tId: transactionId,
+                tType: 'order',
+                tStatus: 'Delivered',
+                tDate: formattedDate,
+                tOrderNum: userDetailsId + '-' + orderNum
+            };
+
+            // Set the transaction data in Firebase
+    const transactionsRef = database.ref('transactions');
+    transactionsRef.child(storeDetailsId).child(transactionId).set(transaction)
+        .then(() => {
+            console.log('Transaction data saved successfully!');
+            alert('Done');
+            // Optionally, you can reset the form after saving the data
+            // document.getElementById('transactionForm').reset();
+        })
+        .catch((error) => {
+            console.error('Error saving transaction data:', error);
+        });
+            // Here you can do further processing with the 'transaction' object
+            console.log(transaction);
+        }
+    </script>
+</body>
+</html>

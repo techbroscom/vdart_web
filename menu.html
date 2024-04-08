@@ -216,20 +216,6 @@
             toggleSummary.toggleClass('show');
         });
 
-//         const firebaseConfig = {
-//   apiKey: "AIzaSyCvcxuv1-MWBtHMIUkeqGH_gfyBWaNN7K0",
-//   authDomain: "vdarttest.firebaseapp.com",
-//   projectId: "vdarttest",
-//   storageBucket: "vdarttest.appspot.com",
-//   messagingSenderId: "157342186908",
-//   databaseURL: "https://vdarttest-default-rtdb.asia-southeast1.firebasedatabase.app",
-//   appId: "1:157342186908:web:ea6c53598d3e9d1cab9c59",
-//   measurementId: "G-NVXLVD13D1"
-// };
-  
-//     // Initialize Firebase
-//     firebase.initializeApp(firebaseConfig);
-
     // Get a reference to the database service
     const database = firebase.database();
 
@@ -375,8 +361,6 @@ $('.add-to-cart').click(function() {
 });
 
 
-
-
 $(document).on('click', '.remove-item', function() {
     const listItem = $(this).closest('li');
     const priceString = listItem.find('div:nth-child(3)').text().replace('₹ ', '');
@@ -487,73 +471,191 @@ const orderNum = storeDetails.orderCounter + 1;
 
     // Push the transaction to the Firebase database
     const transactionsRef = database.ref('transactions');
-transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
-        .then(() => {
-            // Deduct the amount from the user's balance
-            const newBalance = userDetails.balance - total;
-            const newCoinsUtil = userDetails.coinsUtil + total;
-            const orderStore = storeDetails.id;
+// transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
+//         .then(() => {
+//             // Deduct the amount from the user's balance
+//             const newBalance = userDetails.balance - total;
+//             const newCoinsUtil = userDetails.coinsUtil + total;
+//             const orderStore = storeDetails.id;
 
-    // Update the user's balance in the local storage
-    userDetails.lastTranDate = currentDate;
-    userDetails.balance = newBalance;
-    userDetails.isOrderPending = true;
-    userDetails.orderStore = orderStore
-    userDetails.pendingTransId = transactionId;    
-    userDetails.message = "Order is pending...";
-    userDetails.coinsUtil = newCoinsUtil
-    localStorage.setItem('userDetails', JSON.stringify(userDetails));
-            database.ref('userDetails/' + userDetails.id).update({
-                balance: newBalance,
-                isOrderPending: true,
-                lastTranDate: currentDate,
-                pendingTransId: transactionId,
-                orderStore:  orderStore,
-                coinsUtil: newCoinsUtil,
-                message: "Order is pending..."
-            }).then(() => {
-                localStorage.setItem('userDetails', JSON.stringify(userDetails));
-                database.ref('stores/' + storeDetails.id + '/orderCounter').set(orderNum).then(() => {
+//     // Update the user's balance in the local storage
+//     userDetails.lastTranDate = currentDate;
+//     userDetails.balance = newBalance;
+//     userDetails.isOrderPending = true;
+//     userDetails.orderStore = orderStore
+//     userDetails.pendingTransId = transactionId;    
+//     userDetails.message = "Order is pending...";
+//     userDetails.coinsUtil = newCoinsUtil
+//     localStorage.setItem('userDetails', JSON.stringify(userDetails));
+//             database.ref('userDetails/' + userDetails.id).update({
+//                 balance: newBalance,
+//                 isOrderPending: true,
+//                 lastTranDate: currentDate,
+//                 pendingTransId: transactionId,
+//                 orderStore:  orderStore,
+//                 coinsUtil: newCoinsUtil,
+//                 message: "Order is pending..."
+//             }).then(() => {
+//                 localStorage.setItem('userDetails', JSON.stringify(userDetails));
+//                 database.ref('stores/' + storeDetails.id + '/orderCounter').set(orderNum).then(() => {
                     
 
-                    const userRef = firebase.database().ref(`userDetails/${userDetails.id}/transactions`);
-                    userRef.once('value').then((snapshot) => {
-                        let transactions = snapshot.val() || {};
-                        const transactionCount = Object.keys(transactions).length;
-                        if (transactionCount >= 5) {
-                        // Remove the oldest transaction
-                        const oldestTransactionKey = Object.keys(transactions)[0];
-                        delete transactions[oldestTransactionKey];
-                        }
-                        // Add the new transaction
-                        transactions[transaction.tId] = transaction;
-                        userRef.set(transactions);
-                    }).catch((error) => {
-                        console.error('Error adding transaction:', error);
-                        throw error; // Re-throw
-                    }).then(() => {
+//                     const userRef = firebase.database().ref(`userDetails/${userDetails.id}/transactions`);
+//                     userRef.once('value').then((snapshot) => {
+//                         let transactions = snapshot.val() || {};
+//                         const transactionCount = Object.keys(transactions).length;
+//                         if (transactionCount >= 5) {
+//                         // Remove the oldest transaction
+//                         const oldestTransactionKey = Object.keys(transactions)[0];
+//                         delete transactions[oldestTransactionKey];
+//                         }
+//                         // Add the new transaction
+//                         transactions[transaction.tId] = transaction;
+//                         userRef.set(transactions);
+//                     }).catch((error) => {
+//                         console.error('Error adding transaction:', error);
+//                         throw error; // Re-throw
+//                     }).then(() => {
                     
-                    alert('Order placed! Total amount: ₹' + total);
-                // addTransactionToUser(userDetails.id, transaction);
-                total = 0;
-                orderList.empty();
-                totalPrice.text('$0');
-                orderSummary.removeClass('show');
-                toggleSummary.removeClass('show');
-                localStorage.removeItem('storeDetails');
-                window.location.replace('employee_screen.html');
-                    });
-                });
-            }).catch(error => {
-                console.error('Error updating user balance: ', error);
-                alert('Failed to place order. Please try again.');
-            });
-        })
-        .catch(error => {
-            console.error('Error adding transaction: ', error);
-            alert('Failed to place order. Please try again.');
-        });
-    });
+//                     alert('Order placed! Total amount: ₹' + total);
+//                 // addTransactionToUser(userDetails.id, transaction);
+//                 total = 0;
+//                 orderList.empty();
+//                 totalPrice.text('$0');
+//                 orderSummary.removeClass('show');
+//                 toggleSummary.removeClass('show');
+//                 localStorage.removeItem('storeDetails');
+//                 window.location.replace('employee_screen.html');
+//                     });
+//                 });
+//             }).catch(error => {
+//                 console.error('Error updating user balance: ', error);
+//                 alert('Failed to place order. Please try again.');
+//             });
+//         })
+//         .catch(error => {
+//             console.error('Error adding transaction: ', error);
+//             alert('Failed to place order. Please try again.');
+//         });
+
+// const updates = {};
+
+// // Update the transaction
+// updates[`transactions/${storeDetails.id}/${transactionId}`] = transaction;
+
+// // Update the user's details
+// const newBalance = userDetails.balance - total;
+// const newCoinsUtil = userDetails.coinsUtil + total;
+// const orderStore = storeDetails.id;
+// const userId = userDetails.id;
+// const location = userDetails.location;
+// const password = userDetails.password;
+// const status = userDetails.status;
+// const userName = userDetails.userName;
+// const userType = userDetails.userType;
+
+// updates[`userDetails/${userDetails.id}`] = {
+//     balance: newBalance,
+//     coinsUtil: newCoinsUtil,
+//     id: userId,
+//     isOrderPending: true,
+//     lastTranDate: currentDate,
+//     message: "Order is pending...",
+//     orderStore: orderStore,
+//     pendingTransId: transactionId,
+//     location: location,
+//     password: password,
+//     status: status,
+//     userName: userName,
+//     userType: userType
+// };
+
+// // Update the store's order counter
+// updates[`stores/${storeDetails.id}/orderCounter`] = orderNum;
+
+// // Perform the multi-location update
+// database.ref().update(updates)
+//     .then(() => {
+//         // Update local storage
+//         localStorage.setItem('userDetails', JSON.stringify(userDetails));
+
+//         alert('Order placed! Total amount: ₹' + total);
+//         total = 0;
+//         orderList.empty();
+//         totalPrice.text('$0');
+//         orderSummary.removeClass('show');
+//         toggleSummary.removeClass('show');
+//         localStorage.removeItem('storeDetails');
+//         window.location.replace('employee_screen.html');
+//     })
+//     .catch((error) => {
+//         console.error('Error:', error);
+//         alert('Failed to place order. Please try again.');
+//     });
+
+const updates = {};
+
+// // Update the transaction
+updates[`transactions/${storeDetails.id}/${transactionId}`] = transaction;
+
+// Deduct the amount from the user's balance
+const newBalance = userDetails.balance - total;
+const newCoinsUtil = userDetails.coinsUtil + total;
+const orderStore = storeDetails.id;
+
+// Update the user's balance in the local storage
+userDetails.lastTranDate = currentDate;
+userDetails.balance = newBalance;
+userDetails.isOrderPending = true;
+userDetails.orderStore = orderStore;
+userDetails.pendingTransId = transactionId;    
+userDetails.message = "Order is pending...";
+userDetails.coinsUtil = newCoinsUtil;
+localStorage.setItem('userDetails', JSON.stringify(userDetails));
+
+// Update user details in Firebase
+updates[`userDetails/${userDetails.id}/balance`] = newBalance;
+updates[`userDetails/${userDetails.id}/isOrderPending`] = true;
+updates[`userDetails/${userDetails.id}/lastTranDate`] = currentDate;
+updates[`userDetails/${userDetails.id}/pendingTransId`] = transactionId;
+updates[`userDetails/${userDetails.id}/orderStore`] = orderStore;
+updates[`userDetails/${userDetails.id}/message`] = "Order is pending...";
+updates[`userDetails/${userDetails.id}/coinsUtil`] = newCoinsUtil;
+
+// Update store order counter
+updates[`stores/${storeDetails.id}/orderCounter`] = orderNum;
+
+// Update transactions in userDetails.transactions
+const transactions = userDetails.transactions || {};
+const transactionCount = Object.keys(transactions).length;
+if (transactionCount >= 5) {
+  // Remove the oldest transaction
+  const oldestTransactionKey = Object.keys(transactions)[0];
+  delete transactions[oldestTransactionKey];
+}
+// Add the new transaction
+transactions[transaction.tId] = transaction;
+updates[`userDetails/${userDetails.id}/transactions`] = transactions;
+
+// Perform the multi-location update
+database.ref().update(updates)
+  .then(() => {
+    alert('Order placed! Total amount: ₹' + total);
+    total = 0;
+    orderList.empty();
+    totalPrice.text('$0');
+    orderSummary.removeClass('show');
+    toggleSummary.removeClass('show');
+    localStorage.removeItem('storeDetails');
+    window.location.replace('employee_screen.html');
+  })
+  .catch(error => {
+    console.error('Error updating user balance, store order counter, or transactions:', error);
+    alert('Failed to place order. Please try again.');
+  });
+
+
+     });
 
 
     $('.close-summary').click(function() {

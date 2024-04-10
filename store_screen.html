@@ -87,7 +87,7 @@
 
     <div class="transaction-history" style="display: none;">
     <div class="row mt-4">
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Today's Total</h5>
@@ -95,11 +95,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Yesterday's Total</h5>
                     <h3 class="card-text" id="yesterdayTotal"></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Week's Total</h5>
+                    <h3 class="card-text" id="weekTotal"></h3>
                 </div>
             </div>
         </div>
@@ -269,10 +277,16 @@ transactionHistoryRef.once('value', snapshot => {
         transactionHistoryList.innerHTML = ''; // Clear previous list
         let yesterdayTotal = 0;
         let todayTotal = 0;
+        let lastWeekTotal = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set time to 00:00:00
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1); // Set to yesterday
+        const lastSunday = new Date(today);
+        lastSunday.setDate(today.getDate() - today.getDay() - 7); // Set to the Sunday of the week before
+        const lastSaturday = new Date(today);
+        lastSaturday.setDate(today.getDate() - today.getDay() - 1); // Set to the Saturday of the week before
+
 
         Object.values(transactions).reverse().forEach(transaction => {
             if (transaction.tStatus === 'Delivered') {
@@ -300,6 +314,9 @@ transactionHistoryRef.once('value', snapshot => {
             }
             if (transactionDate >= yesterday && transactionDate < today) {
                 yesterdayTotal += transaction.tCoins;
+            }
+            if (transactionDate >= lastSunday && transactionDate <= lastSaturday) {
+                lastWeekTotal += transaction.tCoins;
             }
 
             // Create a Bootstrap card for each transaction
@@ -331,6 +348,8 @@ transactionHistoryRef.once('value', snapshot => {
         // Display yesterday's and today's totals
         document.getElementById('yesterdayTotal').textContent = yesterdayTotal;
         document.getElementById('todayTotal').textContent = todayTotal;
+        document.getElementById('weekTotal').textContent = lastWeekTotal;
+
     } else {
         console.log('No transaction history found for the store ID');
     }

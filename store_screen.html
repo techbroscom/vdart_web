@@ -87,7 +87,7 @@
 
     <div class="transaction-history" style="display: none;">
     <div class="row mt-4">
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Today's Total</h5>
@@ -95,7 +95,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Yesterday's Total</h5>
@@ -103,7 +103,15 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Current Week's Total</h5>
+                    <h3 class="card-text" id="currentWeekTotal"></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Last Week's Total</h5>
@@ -278,14 +286,22 @@ transactionHistoryRef.once('value', snapshot => {
         let yesterdayTotal = 0;
         let todayTotal = 0;
         let lastWeekTotal = 0;
+        let currentWeekTotal = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set time to 00:00:00
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1); // Set to yesterday
-        const lastSunday = new Date(today);
-        lastSunday.setDate(today.getDate() - today.getDay() - 7); // Set to the Sunday of the week before
-        const lastSaturday = new Date(today);
-        lastSaturday.setDate(today.getDate() - today.getDay() - 1); // Set to the Saturday of the week before
+        // Calculate the start and end dates for the current week
+        const currentWeekStart = new Date(today);
+        currentWeekStart.setDate(today.getDate() - today.getDay()); // Set to the Sunday of the current week
+        const currentWeekEnd = new Date(today);
+        currentWeekEnd.setDate(today.getDate() - today.getDay() + 6); // Set to the Saturday of the current week
+
+        // Calculate the start and end dates for the last week
+        const lastWeekStart = new Date(currentWeekStart);
+        lastWeekStart.setDate(currentWeekStart.getDate() - 7); // Set to the Sunday of the previous week
+        const lastWeekEnd = new Date(lastWeekStart);
+        lastWeekEnd.setDate(lastWeekStart.getDate() + 6); // Set to the Saturday of the previous week
 
 
         Object.values(transactions).reverse().forEach(transaction => {
@@ -308,15 +324,18 @@ transactionHistoryRef.once('value', snapshot => {
                 'Date': transaction.tDate,
                 'Status': transaction.tStatus
             });
-            // Calculate yesterday's and today's totals
+            // Calculate yesterday's, today's, last week's, and current week's totals
             if (transactionDate >= today) {
-                todayTotal += transaction.tCoins;
+            todayTotal += transaction.tCoins;
             }
             if (transactionDate >= yesterday && transactionDate < today) {
                 yesterdayTotal += transaction.tCoins;
             }
-            if (transactionDate >= lastSunday && transactionDate <= lastSaturday) {
+            if (transactionDate >= lastWeekStart && transactionDate <= lastWeekEnd) {
                 lastWeekTotal += transaction.tCoins;
+            }
+            if (transactionDate >= currentWeekStart && transactionDate <= currentWeekEnd) {
+                currentWeekTotal += transaction.tCoins;
             }
 
             // Create a Bootstrap card for each transaction
@@ -349,6 +368,7 @@ transactionHistoryRef.once('value', snapshot => {
         document.getElementById('yesterdayTotal').textContent = yesterdayTotal;
         document.getElementById('todayTotal').textContent = todayTotal;
         document.getElementById('weekTotal').textContent = lastWeekTotal;
+        document.getElementById('currentWeekTotal').textContent = currentWeekTotal;
 
     } else {
         console.log('No transaction history found for the store ID');

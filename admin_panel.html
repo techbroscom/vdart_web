@@ -515,6 +515,33 @@ function searchUser(event) {
 }
 
 
+// function updateUserDetails() {
+//     var userId = document.getElementById('searchInput').value;
+//     var userName = document.getElementById('userNameInput').value;
+//     var loc = document.getElementById('userLoc').value;
+//     var newBalance = parseInt(document.getElementById('balance').value);
+//     var coinsLimit = parseInt(document.getElementById('coinsUtilInput').value);
+//     var status = document.getElementById('statusInput').value;
+
+//     var newDetails = {
+//         userName: userName,
+//         coinsUtil: coinsLimit,
+//         balance: newBalance,
+//         location: loc,
+//         status: status
+//         // Add other fields to update if needed
+//     };
+//     var userDetailsRef = database.ref('userDetails/' + userId);
+//     userDetailsRef.update(newDetails, function(error) {
+//         if (error) {
+//             alert('Failed to update user details');
+//         } else {
+//             addLog('Changed details for user ' + userId);
+//             alert('User details updated successfully');
+//         }
+//     });
+// }
+
 function updateUserDetails() {
     var userId = document.getElementById('searchInput').value;
     var userName = document.getElementById('userNameInput').value;
@@ -523,24 +550,66 @@ function updateUserDetails() {
     var coinsLimit = parseInt(document.getElementById('coinsUtilInput').value);
     var status = document.getElementById('statusInput').value;
 
-    var newDetails = {
-        userName: userName,
-        coinsUtil: coinsLimit,
-        balance: newBalance,
-        location: loc,
-        status: status
-        // Add other fields to update if needed
-    };
+    if (isNaN(newBalance) || isNaN(coinsLimit)) {
+        alert('Balance and Coins Utilized must be numbers');
+        return;
+    }
+
     var userDetailsRef = database.ref('userDetails/' + userId);
-    userDetailsRef.update(newDetails, function(error) {
-        if (error) {
-            alert('Failed to update user details');
+    userDetailsRef.once('value', function(snapshot) {
+        var existingDetails = snapshot.val();
+        var changedFields = [];
+
+        if (existingDetails) {
+            var changeDetails = [];
+
+            if (existingDetails.userName !== userName) {
+                changeDetails.push('User Name: ' + existingDetails.userName + ' -> ' + userName);
+                changedFields.push('User Name');
+            }
+            if (existingDetails.balance !== newBalance) {
+                changeDetails.push('Balance: ' + existingDetails.balance + ' -> ' + newBalance);
+                changedFields.push('Balance');
+            }
+            if (existingDetails.coinsUtil !== coinsLimit) {
+                changeDetails.push('Coins Utilized: ' + existingDetails.coinsUtil + ' -> ' + coinsLimit);
+                changedFields.push('Coins Utilized');
+            }
+            if (existingDetails.location !== loc) {
+                changeDetails.push('Location: ' + existingDetails.location + ' -> ' + loc);
+                changedFields.push('Location');
+            }
+            if (existingDetails.status !== status) {
+                changeDetails.push('Status: ' + existingDetails.status + ' -> ' + status);
+                changedFields.push('Status');
+            }
+
+            var newDetails = {
+                userName: userName,
+                coinsUtil: coinsLimit,
+                balance: newBalance,
+                location: loc,
+                status: status
+                // Add other fields to update if needed
+            };
+
+            userDetailsRef.update(newDetails, function(error) {
+                if (error) {
+                    alert('Failed to update user details');
+                    console.error('Error updating user details:', error);
+                } else {
+                    var changeMessage = 'Changed details for user ' + userId + '. Changed fields: ' + changedFields.join(', ') + '. Changes: ' + changeDetails.join(', ');
+                    addLog(changeMessage);
+                    alert('User details updated successfully');
+                }
+            });
         } else {
-            addLog('Changed details for user ' + userId);
-            alert('User details updated successfully');
+            alert('User not found');
         }
     });
 }
+
+
 
 function updateUserPassword() {
     var userId = document.getElementById('searchInput').value;
@@ -989,51 +1058,125 @@ document.getElementById('creditForm').addEventListener('submit', function(event)
             return;
         }
 
-        var userDetailsRef = database.ref('userDetails');
-        userDetailsRef.once('value', function(snapshot) {
-            snapshot.forEach(function(childSnapshot) {
-                var childKey = childSnapshot.key;
-                var childData = childSnapshot.val();
-                if (childData.location === location && childData.status.toLowerCase() !='inactive' && childData.userType.toLowerCase() !== 'store' && childData.userType.toLowerCase() !== 'admin') {
-                    var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
-                    userDetailsRef.child(childKey).update({ 
-                        balance: newBalance 
-                    }).then(() => {
-                        const currentDate = new Date();
+        // var userDetailsRef = database.ref('userDetails');
+        // userDetailsRef.once('value', function(snapshot) {
+        //     snapshot.forEach(function(childSnapshot) {
+        //         var childKey = childSnapshot.key;
+        //         var childData = childSnapshot.val();
+        //         if (childData.location === location && childData.status.toLowerCase() !='inactive' && childData.userType.toLowerCase() !== 'store' && childData.userType.toLowerCase() !== 'admin') {
+        //             var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
+        //             userDetailsRef.child(childKey).update({ 
+        //                 balance: newBalance 
+        //             }).then(() => {
+        //                 const currentDate = new Date();
 
-                        const day = String(currentDate.getDate()).padStart(2, '0');
-                        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-                        const year = currentDate.getFullYear();
+        //                 const day = String(currentDate.getDate()).padStart(2, '0');
+        //                 const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        //                 const year = currentDate.getFullYear();
 
-                        const hours = String(currentDate.getHours()).padStart(2, '0');
-                        const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-                        const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+        //                 const hours = String(currentDate.getHours()).padStart(2, '0');
+        //                 const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+        //                 const seconds = String(currentDate.getSeconds()).padStart(2, '0');
 
-                        const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+        //                 const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
 
-                        const transactionId = generateTransactionId();
-                        const transaction = {
-                            tCoins: newBalance,
-                            tFrom: userDetails.id,
-                            tFromName: userDetails.userName,
-                            tTo: childData.id, // Assuming this is the store ID or some identifier
-                            tToName: childData.userName, // Assuming this is the store name
-                            tId: transactionId, // Generating a unique ID with a timestamp
-                            tType: 'Credit', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
-                            tStatus: 'Done',
-                            tDate: formattedDate
-                        };
+        //                 const transactionId = generateTransactionId();
+        //                 const transaction = {
+        //                     tCoins: newBalance,
+        //                     tFrom: userDetails.id,
+        //                     tFromName: userDetails.userName,
+        //                     tTo: childData.id, // Assuming this is the store ID or some identifier
+        //                     tToName: childData.userName, // Assuming this is the store name
+        //                     tId: transactionId, // Generating a unique ID with a timestamp
+        //                     tType: 'Credit', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
+        //                     tStatus: 'Done',
+        //                     tDate: formattedDate
+        //                 };
 
-                        // Push the transaction to the Firebase database
-                        const transactionsRef = database.ref('creditTransactions');
-                        transactionsRef.child(transactionId).set(transaction)
-                    });
-                }
+        //                 // Push the transaction to the Firebase database
+        //                 const transactionsRef = database.ref('creditTransactions');
+        //                 transactionsRef.child(transactionId).set(transaction)
+        //             });
+        //         }
+        //     });
+        //     addLog(coins+ ' Coins credited to location '+location);
+        //     alert('Coins credited successfully.');
+        //     document.getElementById('creditForm').reset();
+        // });
+
+var userDetailsRef = database.ref('userDetails');
+var transactions = []; // Array to store transactions
+var commonTransactionId = generateTransactionId(); // Change this to your desired prefix
+var transactionCounter = 1; // Initialize the transaction counter
+var formattedDate = formattedDate(new Date());
+
+userDetailsRef.once('value', function(snapshot) {
+    snapshot.forEach(function(childSnapshot) {
+        var childKey = childSnapshot.key;
+        var childData = childSnapshot.val();
+        if (childData.location === location && childData.status.toLowerCase() == 'active' && childData.userType.toLowerCase() == 'employee') {
+            var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
+            
+            // Create transaction object
+            const transactionId = `${commonTransactionId}${String(transactionCounter).padStart(5, '0')}`;
+            const transaction = {
+                tCoins: newBalance,
+                tFrom: userDetails.id,
+                tFromName: userDetails.userName,
+                tTo: childData.id, // Assuming this is the store ID or some identifier
+                tToName: childData.userName, // Assuming this is the store name
+                tId: transactionId,
+                tType: 'Credit',
+                tStatus: 'Done',
+                tDate: formattedDate
+            };
+            
+            // Push transaction to array
+            transactions.push({
+                key: childKey,
+                data: transaction
             });
-            addLog(coins+ ' Coins credited to location '+location);
+
+            // Increment transaction counter
+            transactionCounter++;
+        }
+    });
+
+    // Once all transactions are generated, update Firebase
+    updateFirebaseWithTransactions();
+});
+
+function updateFirebaseWithTransactions() {
+    const updates = {};
+    transactions.forEach(transactionObj => {
+        updates[`userDetails/${transactionObj.key}/balance`] = transactionObj.data.tCoins;
+        updates[`creditTransactions/${transactionObj.data.tId}`] = transactionObj.data;
+    });
+
+    // Perform multi-location update in Firebase
+    return database.ref().update(updates)
+        .then(() => {
+            addLog(coins + ' Coins credited to location ' + location);
             alert('Coins credited successfully.');
             document.getElementById('creditForm').reset();
+        })
+        .catch(error => {
+            console.error('Error updating Firebase: ', error);
+            // Handle error
         });
+}
+
+function formattedDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
     });
 
     var userList = [];
@@ -1387,26 +1530,31 @@ document.getElementById('encashForm').addEventListener('submit', function(event)
 });
 
 function showLogsHistory() {
-    // Reference to the credit transaction history in the Firebase database
     const logsRef = database.ref('logs');
 
-    // Fetch the log history once
     logsRef.once('value').then(function(snapshot) {
         const logsList = document.getElementById('logsList');
         logsList.innerHTML = ''; // Clear existing logs
 
+        // Convert the snapshot to an array and reverse it
+        const logsArray = [];
         snapshot.forEach(function(childSnapshot) {
+            logsArray.push(childSnapshot);
+        });
+        logsArray.reverse();
+
+        logsArray.forEach(function(childSnapshot) {
             const logData = childSnapshot.val();
             const logItem = document.createElement('li');
             logItem.classList.add('list-group-item');
-            logItem.textContent = logData.message + ' - ' + new Date(logData.timestamp).toString() + ' - by ' + logData.userId + ' ( ' + logData.userName + ' ) ';
+            logItem.innerHTML = `<strong>${logData.message}</strong> - ${new Date(logData.timestamp).toString()} - by ${logData.userId} ( ${logData.userName} )`;
 
             logDataList.push({
-                    'Date': new Date(logData.timestamp).toString(),
-                    'Message': logData.message,
-                    'UserId': logData.userId,
-                    'UserName': logData.userName
-                });
+                'Date': new Date(logData.timestamp).toString(),
+                'Message': logData.message,
+                'UserId': logData.userId,
+                'UserName': logData.userName
+            });
 
             logsList.appendChild(logItem);
         });

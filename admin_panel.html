@@ -169,6 +169,7 @@
         <a href="#" onclick="showContent('encashHis')">Encash History</a>
         <a href="#" onclick="showContent('feedback')">Feedback</a>
         <a href="#" onclick="showContent('config')">Configuration</a>
+        <a href="#" onclick="showContent('deleteTran')">Delete Transactions</a>
         <a href="#" onclick="showContent('logs')">Logs</a>
         <a href="#" onclick="logout()">Logout</a>
     </div>
@@ -193,6 +194,22 @@
             <div class="table-responsive">
                 <table id="employeeTable" class="table"></table>
             </div>
+        </div>
+
+        <div id="deleteTran" style="display:none;">
+            <h2>Delete Transactions</h2>
+            <form id="dateRangeForm">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" name="startDate">
+        
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" name="endDate">
+        
+                <button type="submit">Submit</button>
+            </form>
+            <button id="deleteTranButton">Delete Transactions</button>
+            <ul id="deleteTransactionsList"></ul>
+
         </div>
 
         <div id="store" style="display:none;">
@@ -514,34 +531,6 @@ function searchUser(event) {
     });
 }
 
-
-// function updateUserDetails() {
-//     var userId = document.getElementById('searchInput').value;
-//     var userName = document.getElementById('userNameInput').value;
-//     var loc = document.getElementById('userLoc').value;
-//     var newBalance = parseInt(document.getElementById('balance').value);
-//     var coinsLimit = parseInt(document.getElementById('coinsUtilInput').value);
-//     var status = document.getElementById('statusInput').value;
-
-//     var newDetails = {
-//         userName: userName,
-//         coinsUtil: coinsLimit,
-//         balance: newBalance,
-//         location: loc,
-//         status: status
-//         // Add other fields to update if needed
-//     };
-//     var userDetailsRef = database.ref('userDetails/' + userId);
-//     userDetailsRef.update(newDetails, function(error) {
-//         if (error) {
-//             alert('Failed to update user details');
-//         } else {
-//             addLog('Changed details for user ' + userId);
-//             alert('User details updated successfully');
-//         }
-//     });
-// }
-
 function updateUserDetails() {
     var userId = document.getElementById('searchInput').value;
     var userName = document.getElementById('userNameInput').value;
@@ -608,8 +597,6 @@ function updateUserDetails() {
         }
     });
 }
-
-
 
 function updateUserPassword() {
     var userId = document.getElementById('searchInput').value;
@@ -1746,8 +1733,71 @@ function addItem(storeId, itemName, itemPrice) {
     });
 }
 
+document.getElementById('dateRangeForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the form from submitting
+
+    var startDate = document.getElementById('startDate').value;
+    var endDate = document.getElementById('endDate').value;
+
+    // Load transactions from Firebase for all stores based on the selected date range
+    displayTransactionsToDelete(startDate, endDate);
+});
+
+function displayTransactionsToDelete(startDate, endDate) {
+            const transactionsRef = database.ref('transactions');
+            const delUpdates = {};
+
+            transactionsRef.once('value').then(function(snapshot) {
+                const deleteTransactionsList = document.getElementById('deleteTransactionsList');
+                deleteTransactionsList.innerHTML = ''; // Clear existing transactions
 
 
+                snapshot.forEach(function(storeSnapshot) {
+                    const storeId = storeSnapshot.key;
+                    const storeTransactions = storeSnapshot.val();
+
+                    // Filter transactions for the current store based on the selected date range
+                    const filteredTransactions = Object.entries(storeTransactions).filter(function([key, transaction]) {
+                        const transactionDate = new Date(
+                            parseInt(transaction.tDate.substring(6, 10)),  // Year
+                            parseInt(transaction.tDate.substring(3, 5)) - 1,  // Month (zero-based index)
+                            parseInt(transaction.tDate.substring(0, 2)),  // Day
+                            parseInt(transaction.tDate.substring(11, 13)),  // Hours
+                            parseInt(transaction.tDate.substring(14, 16)),  // Minutes
+                            parseInt(transaction.tDate.substring(17, 19))  // Seconds
+                        );
+
+                        const startDateObj = new Date(startDate);
+                        const endDateObj = new Date(endDate);
+
+                        return transactionDate >= startDateObj && transactionDate <= new Date(endDateObj.getTime() + 86400000); // Adding 1 day (86400000 milliseconds) to include transactions on the end date
+                    });
+
+                    // Add updates to remove filtered transactions
+                    filteredTransactions.forEach(function([key, transaction]) {
+                        delUpdates[`transactions/${storeId}/${key}`] = null;
+                    });
+
+                    // Display the filtered transactions in the deleteTransactionsList
+                    filteredTransactions.forEach(function([key, transaction]) {
+                        const transactionItem = document.createElement('li');
+                        transactionItem.textContent = `Store ID: ${storeId}, Date: ${transaction.tDate}`;
+
+                        deleteTransactionsList.appendChild(transactionItem);
+                    });
+                });
+
+                
+            });
+            // Perform multi-location update to remove transactions
+            document.getElementById('deleteTranButton').addEventListener('click', function() {
+                    database.ref().update(delUpdates).then(function() {
+                        alert('Transactions deleted successfully');
+                    }).catch(function(error) {
+                        alert('Failed to delete transactions: ' + error.message);
+                    });
+                });
+        }
 
 </script>
 </body>

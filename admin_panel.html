@@ -185,6 +185,7 @@
                 <p id="userDetails"></p>
                 <button onclick="updateUserDetails()">Update Details</button>
                 <button onclick="updateUserPassword()">Reset Password</button>
+                <button onclick="deleteUser()">Delete User</button>
                 <!-- <button onclick="updateUserBalance()">Update Balance</button> -->
             </div>
         </div>
@@ -622,6 +623,41 @@ function updateUserPassword() {
         }
     });
 }
+
+
+function deleteUser() {
+    var userId = document.getElementById('searchInput').value;
+
+    var userDetailsRef = database.ref('userDetails/' + userId);
+    userDetailsRef.once('value', function(snapshot) {
+        if (snapshot.exists()) {
+            var confirmation = confirm('Are you sure you want to delete this user?');
+            if (confirmation) {
+                userDetailsRef.remove()
+                    .then(function() {
+                        addLog('Deleted user ' + userId);
+                        alert('User deleted successfully');
+                        // Clear fields and hide search result
+                        document.getElementById('userNameInput').value = '';
+                        document.getElementById('userLoc').value = '';
+                        document.getElementById('balance').value = '';
+                        document.getElementById('coinsUtilInput').value = '';
+                        document.getElementById('statusInput').value = '';
+                        document.getElementById('searchResult').style.display = 'none';
+                    })
+                    .catch(function(error) {
+                        alert('Failed to delete user');
+                        console.error('Error deleting user:', error);
+                    });
+                    document.getElementById('searchResult').style.display = 'none';
+
+            }
+        } else {
+            alert('User not found');
+        }
+    });
+}
+
 
 // function updateUserBalance() {
 //     var userId = document.getElementById('searchInput').value;

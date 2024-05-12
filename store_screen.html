@@ -238,41 +238,94 @@
                         // Show a confirmation dialog
                     if (confirm('Are you sure you want to cancel this order?')) {
                         // Update the transaction status to "Cancelled" in the database
-                        const updates = {};
+                        // const updates = {};
 
-                        // Update transaction status to "Cancelled"
-                        updates[`transactions/${storeId}/${transaction.tId}/tStatus`] = 'Cancelled';
-                        var userRef = db.ref('userDetails/' + transaction.tFrom);
-                        // Update user's balance and coinsUtil
-                        userRef.once('value').then(snapshot => {
-                            const userData = snapshot.val();
-                            const currentBalance = userData.balance || 0;
-                            const currentUtilBalance = userData.coinsUtil || transaction.tCoins;
-                            const newBalance = currentBalance + transaction.tCoins;
-                            const newUtilBalance = currentUtilBalance - transaction.tCoins;
+                        // // Update transaction status to "Cancelled"
+                        // updates[`transactions/${storeId}/${transaction.tId}/tStatus`] = 'Cancelled';
+                        // var userRef = db.ref('userDetails/' + transaction.tFrom);
+                        // // Update user's balance and coinsUtil
+                        // userRef.once('value').then(snapshot => {
+                        //     const userData = snapshot.val();
+                        //     const currentBalance = userData.balance || 0;
+                        //     const currentUtilBalance = userData.coinsUtil || transaction.tCoins;
+                        //     const newBalance = currentBalance + transaction.tCoins;
+                        //     const newUtilBalance = currentUtilBalance - transaction.tCoins;
 
-                            updates[`userDetails/${transaction.tFrom}/balance`] = newBalance;
-                            updates[`userDetails/${transaction.tFrom}/coinsUtil`] = newUtilBalance;
-                            updates[`userDetails/${transaction.tFrom}/message`] = 'Refund successful';
-                            updates[`userDetails/${transaction.tFrom}/isOrderPending`] = false;
+                        //     updates[`userDetails/${transaction.tFrom}/balance`] = newBalance;
+                        //     updates[`userDetails/${transaction.tFrom}/coinsUtil`] = newUtilBalance;
+                        //     updates[`userDetails/${transaction.tFrom}/message`] = 'Refund successful';
+                        //     updates[`userDetails/${transaction.tFrom}/isOrderPending`] = false;
 
-                            // Update the user's transaction status to "Cancelled"
-                            updates[`userDetails/${transaction.tFrom}/transactions/${transaction.tId}/tStatus`] = 'Cancelled';
+                        //     // Update the user's transaction status to "Cancelled"
+                        //     updates[`userDetails/${transaction.tFrom}/transactions/${transaction.tId}/tStatus`] = 'Cancelled';
 
-                            // Perform the multi-location update
-                            db.ref().update(updates)
-                                .then(() => {
+                        //     // Perform the multi-location update
+                        //     db.ref().update(updates)
+                        //         .then(() => {
+                        //             console.log('Transaction and user details updated successfully');
+                        //             // Remove the transaction from the list
+                        //             transactionItem.remove();
+                        //         })
+                        //         .catch(error => {
+                        //             console.error('Error updating transaction and user details:', error);
+                        //         });
+                        // })
+                        // .catch(error => {
+                        //     console.error('Error reading user data:', error);
+                        // });
+
+                        const transactionRef = db.ref(`transactions/${storeId}/${transaction.tId}/tStatus`);
+
+                        transactionRef.transaction(currentStatus => {
+                            if (currentStatus === null || currentStatus === 'Pending') {
+                                // Update the transaction status to "Cancelled"
+                                return 'Cancelled';
+                            } else {
+                                // Transaction already processed or cancelled, do not update
+                                return;
+                            }
+                        }).then(transactionResult => {
+                            if (!transactionResult.committed) {
+                                console.log('Transaction was not committed. Exiting.');
+                                return;
+                            }
+
+                            const userRef = db.ref(`userDetails/${transaction.tFrom}`);
+
+                            userRef.transaction(userData => {
+                                if (userData) {
+                                    const currentBalance = userData.balance || 0;
+                                    const currentUtilBalance = userData.coinsUtil || transaction.tCoins;
+                                    const newBalance = currentBalance + transaction.tCoins;
+                                    const newUtilBalance = currentUtilBalance - transaction.tCoins;
+
+                                    userData.balance = newBalance;
+                                    userData.coinsUtil = newUtilBalance;
+                                    userData.message = 'Refund successful';
+                                    userData.isOrderPending = false;
+
+                                    // Update the transaction status to "Cancelled" in the user's transactions
+                                    if (userData.transactions && userData.transactions[transaction.tId]) {
+                                        userData.transactions[transaction.tId].tStatus = 'Cancelled';
+                                    }
+                                }
+
+                                return userData;
+                            }).then(userResult => {
+                                if (userResult.committed) {
                                     console.log('Transaction and user details updated successfully');
                                     // Remove the transaction from the list
                                     transactionItem.remove();
-                                })
-                                .catch(error => {
-                                    console.error('Error updating transaction and user details:', error);
-                                });
-                        })
-                        .catch(error => {
-                            console.error('Error reading user data:', error);
+                                } else {
+                                    console.log('User data transaction was not committed. Exiting.');
+                                }
+                            }).catch(error => {
+                                console.error('Error updating user details:', error);
+                            });
+                        }).catch(error => {
+                            console.error('Error updating transaction status:', error);
                         });
+
                     }
                 });
                     // Append the transaction details to the pendingTransactionsList

@@ -9,6 +9,9 @@
       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
       <!-- Custom CSS -->
       <script src="sessionTimeout.js" defer></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
 
       <style>
         body {
@@ -379,9 +382,40 @@
                 transform: rotate(360deg);
             }
         }
+
+        .status-delivered { color: green; }
+    .status-cancelled { color: red; }
+    .status-pending { color: orange; }
+
+    .status-delivered::before {
+    content: '✔️ '; /* Checkmark icon for delivered */
+    color: green;
+}
+.status-cancelled::before {
+    content: '❌ '; /* Cross icon for cancelled */
+    color: red;
+}
+/* Define keyframes for the blinking animation */
+@keyframes blinking {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Apply the animation to the pending status */
+.status-pending {
+    color: orange;
+    animation: blinking 1s infinite linear;
+}
+
+/* Define the icon for the pending status */
+.status-pending::before {
+    content: "⏳"; /* Hourglass icon for pending status */
+    margin-right: 0.5em;
+}
     </style>
 </head>
-<body>
+<body class="notranslate">
 
     <nav class="navbar navbar-dark bg-primary center">
         <span class="navbar-brand mb-0 h1">VDart Cafe Wallets</span>
@@ -515,7 +549,6 @@ if (!userDetails) {
     }
 
     if (userDetails.isOrderPending) {
-
         document.querySelector('.store-list').style.display = 'none';
 
     // If there is a pending order, show the transaction details
@@ -620,62 +653,37 @@ pendingTransactionItems.innerHTML += `
 //     let storesFound = false;
 //     for (let storeKey in stores) {
 //         const store = stores[storeKey];
-//         if(store.location === userDetails.location){
+//         if(['vd-mp', 'vd-mp-day', 'vd-mp-vdss'].includes(userDetails.location.toLowerCase()) && store.location.toLowerCase() === 'vd-mp'){
 //             const storeItem = document.createElement('div');
-// storeItem.className = 'card mb-3';
-// storeItem.style.cursor = 'pointer';
-// storeItem.innerHTML = `
-// <div class="card-body">
-//                     <div class="row">
-//                         <div class="col-2">
-//                             <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
-//                         </div>
-//                         <div class="col-10">
-//                             <h5 class="card-title">${store.name}</h5>
-//                             <p class="card-text">${store.location}</p>
-//                         </div>
+//             storeItem.className = 'card mb-3';
+//             storeItem.style.cursor = 'pointer';
+//             storeItem.innerHTML = `
+//             <div class="card-body">
+//                 <div class="row">
+//                     <div class="col-2">
+//                         <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
 //                     </div>
-//                 </div>`;
-//         storeItem.addEventListener('click', () => {
-//             // Store the menu items for the selected store in localStorage
-//             localStorage.setItem('menuItems', JSON.stringify(store.menu));
-//             localStorage.setItem('storeDetails', JSON.stringify(store));
-//             // Navigate to the next page with store details and menu items
-//             window.location.replace('menu.html');
-//         });
-//         storesList.appendChild(storeItem);
-//         }
-//         if(userDetails.location === 'VD-MP' || userDetails.location === 'VD-MP-DAY' || userDetails.location === 'VD-MP-VDSS'){
-
-//         }
-//     }
-// }, error => {
-//     console.error('Error fetching stores:', error);
-// });
-// }
-
-// function showStoreUi(){
-//     document.getElementById('pendingTransaction').style.display = 'none';
-//     document.getElementById('loading').style.display = 'none';
-
-//     // If there is no pending order, display the store list
-
-//     const storesListRef = db.ref('stores');
-//     storesListRef.on('value', snapshot => {
-//     const stores = snapshot.val();
-//     const storesList = document.getElementById('storesList');
-//     const noStoresMessage = document.getElementById('noStoresMessage');
-//     storesList.innerHTML = ''; // Clear previous list
-//     if (!stores) {
-//         noStoresMessage.style.display = 'block'; // Show message
-//         console.log('No stores found in the database');
-//         return;
-//     }
-//     document.querySelector('.store-list').style.display = 'block'; // Show the store list
-//     let storesFound = false;
-//     for (let storeKey in stores) {
-//         const store = stores[storeKey];
-//         if(['VD-MP', 'VD-MP-DAY', 'VD-MP-VDSS'].includes(userDetails.location) && store.location === 'VD-MP'){
+//                     <div class="col-10">
+//                         <h5 class="card-title">${store.name}</h5>
+//                         <p class="card-text">${store.location}</p>
+//                     </div>
+//                 </div>
+//             </div>`;
+//             storeItem.addEventListener('click', () => {
+//                 // Store the menu items for the selected store in localStorage
+//                 localStorage.setItem('menuItems', JSON.stringify(store.menu));
+//                 localStorage.setItem('storeDetails', JSON.stringify(store));
+//                 // Navigate to the next page with store details and menu items
+//                 window.location.replace('menu.html');
+//             });
+//             storesList.appendChild(storeItem);
+//             storesFound = true;
+//         } else if (store.location === userDetails.location && (
+//     userDetails.location.toLowerCase() !== 'vd-mp' &&
+//     userDetails.location.toLowerCase() !== 'vd-mp-day' &&
+//     userDetails.location.toLowerCase() !== 'vd-mp-vdss'
+//   )) {
+//             // Display stores from other locations
 //             const storeItem = document.createElement('div');
 //             storeItem.className = 'card mb-3';
 //             storeItem.style.cursor = 'pointer';
@@ -711,92 +719,111 @@ pendingTransactionItems.innerHTML += `
 // });
 // }
 
-function showStoreUi(){
+function showStoreUi() {
     document.getElementById('pendingTransaction').style.display = 'none';
     document.getElementById('loading').style.display = 'none';
 
-    // If there is no pending order, display the store list
-
     const storesListRef = db.ref('stores');
     storesListRef.on('value', snapshot => {
-    const stores = snapshot.val();
-    const storesList = document.getElementById('storesList');
-    const noStoresMessage = document.getElementById('noStoresMessage');
-    storesList.innerHTML = ''; // Clear previous list
-    if (!stores) {
-        noStoresMessage.style.display = 'block'; // Show message
-        console.log('No stores found in the database');
-        return;
-    }
-    document.querySelector('.store-list').style.display = 'block'; // Show the store list
-    let storesFound = false;
-    for (let storeKey in stores) {
-        const store = stores[storeKey];
-        if(['vd-mp', 'vd-mp-day', 'vd-mp-vdss'].includes(userDetails.location.toLowerCase()) && store.location.toLowerCase() === 'vd-mp'){
-            const storeItem = document.createElement('div');
-            storeItem.className = 'card mb-3';
-            storeItem.style.cursor = 'pointer';
-            storeItem.innerHTML = `
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-2">
-                        <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
-                    </div>
-                    <div class="col-10">
-                        <h5 class="card-title">${store.name}</h5>
-                        <p class="card-text">${store.location}</p>
-                    </div>
-                </div>
-            </div>`;
-            storeItem.addEventListener('click', () => {
-                // Store the menu items for the selected store in localStorage
-                localStorage.setItem('menuItems', JSON.stringify(store.menu));
-                localStorage.setItem('storeDetails', JSON.stringify(store));
-                // Navigate to the next page with store details and menu items
-                window.location.replace('menu.html');
-            });
-            storesList.appendChild(storeItem);
-            storesFound = true;
-        } else if (store.location === userDetails.location && (
-    userDetails.location.toLowerCase() !== 'vd-mp' &&
-    userDetails.location.toLowerCase() !== 'vd-mp-day' &&
-    userDetails.location.toLowerCase() !== 'vd-mp-vdss'
-  )) {
-            // Display stores from other locations
-            const storeItem = document.createElement('div');
-            storeItem.className = 'card mb-3';
-            storeItem.style.cursor = 'pointer';
-            storeItem.innerHTML = `
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-2">
-                        <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
-                    </div>
-                    <div class="col-10">
-                        <h5 class="card-title">${store.name}</h5>
-                        <p class="card-text">${store.location}</p>
-                    </div>
-                </div>
-            </div>`;
-            storeItem.addEventListener('click', () => {
-                // Store the menu items for the selected store in localStorage
-                localStorage.setItem('menuItems', JSON.stringify(store.menu));
-                localStorage.setItem('storeDetails', JSON.stringify(store));
-                // Navigate to the next page with store details and menu items
-                window.location.replace('menu.html');
-            });
-            storesList.appendChild(storeItem);
-            storesFound = true;
+        const stores = snapshot.val();
+        const storesList = document.getElementById('storesList');
+        const noStoresMessage = document.getElementById('noStoresMessage');
+        storesList.innerHTML = ''; // Clear previous list
+
+        if (!stores) {
+            noStoresMessage.style.display = 'block'; // Show message
+            console.log('No stores found in the database');
+            return;
+        }
+
+        document.querySelector('.store-list').style.display = 'block'; // Show the store list
+        let storesFound = false;
+
+        for (let storeKey in stores) {
+            const store = stores[storeKey];
+
+            if (shouldShowStore(userDetails.location, store.location)) {
+                const storeItem = createCardElement(store);
+                storeItem.addEventListener('click', () => {
+                    // Store the menu items for the selected store in localStorage
+                    localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                    localStorage.setItem('storeDetails', JSON.stringify(store));
+                    // Navigate to the next page with store details and menu items
+                    window.location.replace('menu.html');
+                });
+                storesList.appendChild(storeItem);
+                storesFound = true;
+            }
+        }
+
+        if (!storesFound) {
+            noStoresMessage.style.display = 'block'; // Show message
+            console.log('No stores found in the database for the user location:', userDetails.location);
+            console.log('Stores data:', stores);
+        }
+    }, error => {
+        console.error('Error fetching stores:', error);
+    });
+}
+    
+
+function shouldShowStore(userLocation, storeLocation) {
+    return (
+        storeLocation.toLowerCase() === 'vd-mp' ||
+        storeLocation.toLowerCase() === userLocation.toLowerCase()
+    );
+}
+
+function calculateItemAvailability(menu) {
+    let availableItems = 0;
+    let outOfStockItems = 0;
+
+    for (const itemName in menu) {
+        if (menu.hasOwnProperty(itemName)) {
+            const item = menu[itemName];
+            if (!item.disabled) {
+                availableItems++;
+            } else {
+                outOfStockItems++;
+            }
         }
     }
-    if (!storesFound) {
-        noStoresMessage.style.display = 'block'; // Show message
-        console.log('No stores found in the database for the user location:', userDetails.location);
-    }
-}, error => {
-    console.error('Error fetching stores:', error);
-});
+
+    return { availableItems, outOfStockItems };
 }
+
+
+function createCardElement(store) {
+    const { availableItems, outOfStockItems } = calculateItemAvailability(store.menu);
+
+    const storeItem = document.createElement('div');
+    storeItem.className = 'card mb-3 store-item';
+    storeItem.style.cursor = 'pointer';
+    storeItem.innerHTML = `
+        <div class="card-body">
+            <div class="row">
+                <div class="col-2 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-store-alt" style="font-size: 2rem; color: #3498db;"></i>
+                </div>
+                <div class="col-10">
+                    <h5 class="card-title" style="color: #333; font-weight: bold; margin-bottom: 0;">
+                        <span style="font-size: 1.5rem;">${store.name}</span> 
+                        <i class="fas fa-map-marker-alt" style="color: #2ecc71; margin-left: 5px;"></i> 
+                        <span style="font-size: 0.8rem;">${store.location}</span>
+                    </h5>
+                    <p class="card-text d-none d-sm-block">
+                        Available Items: ${availableItems} | Out of Stock: ${outOfStockItems}
+                    </p>
+                    <p class="card-text d-block d-sm-none">
+                        Items: ${availableItems} (Available) / ${outOfStockItems} (Out of Stock)
+                    </p>
+                </div>
+            </div>
+        </div>`;
+    return storeItem;
+}
+
+
 
 
 var coinsLimit;
@@ -925,48 +952,114 @@ feedbackForm.addEventListener('submit', (event) => {
 //     }
 // }
 
+// function renderTransactions(transactions) {
+//     const transactionItemsElement = document.getElementById('transactionItems');
+//     transactionItemsElement.innerHTML = ''; // Clear previous items
+
+//     if (typeof userDetails.transactions != 'object') {
+//         const noTransactionsElement = document.createElement('div');
+//         noTransactionsElement.classList.add('text-center', 'text-muted');
+//         noTransactionsElement.textContent = 'No transactions found.';
+//         transactionItemsElement.appendChild(noTransactionsElement);
+//     } else {
+//         const keys = Object.keys(transactions).reverse(); // Reverse the order of keys
+
+//         for (const key of keys) { // Use for...of loop to iterate in reverse
+//             const transaction = transactions[key];
+//             const transactionElement = document.createElement('div');
+//             transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
+//             transactionElement.innerHTML = `
+//                 <div class="row">
+//                     <div class="col-md-6">
+//                         <div class="items">
+//                             <strong>Items:</strong>
+//                             <ul>
+//                                 ${transaction.items && Array.isArray(transaction.items) ? 
+//                                     transaction.items.map(item =>
+//                                         `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
+//                                     ).join('') : 'No items found'}
+//                             </ul>
+//                         </div>
+//                         <div class="total-coins"><strong>Date:</strong> ${transaction.tDate}</div>
+//                     </div>
+//                     <div class="col-md-3">
+//                         <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
+//                     </div>
+//                     <div class="col-md-3">
+//                         <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
+//                     </div>
+//                 </div>
+//             `;
+//             transactionItemsElement.appendChild(transactionElement);
+//         }
+//     }
+// }
+
 function renderTransactions(transactions) {
     const transactionItemsElement = document.getElementById('transactionItems');
     transactionItemsElement.innerHTML = ''; // Clear previous items
 
-    if (typeof userDetails.transactions != 'object') {
+    if (!transactions || typeof transactions !== 'object' || Object.keys(transactions).length === 0) {
         const noTransactionsElement = document.createElement('div');
         noTransactionsElement.classList.add('text-center', 'text-muted');
         noTransactionsElement.textContent = 'No transactions found.';
         transactionItemsElement.appendChild(noTransactionsElement);
-    } else {
-        const keys = Object.keys(transactions).reverse(); // Reverse the order of keys
+        return;
+    }
 
-        for (const key of keys) { // Use for...of loop to iterate in reverse
-            const transaction = transactions[key];
-            const transactionElement = document.createElement('div');
-            transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
-            transactionElement.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="items">
-                            <strong>Items:</strong>
-                            <ul>
-                                ${transaction.items && Array.isArray(transaction.items) ? 
-                                    transaction.items.map(item =>
-                                        `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
-                                    ).join('') : 'No items found'}
-                            </ul>
-                        </div>
-                        <div class="total-coins"><strong>Date:</strong> ${transaction.tDate}</div>
+    const transactionKeys = Object.keys(transactions).reverse(); // Reverse the order of keys to show the latest first
+
+    for (const key of transactionKeys) {
+        const transaction = transactions[key];
+        const transactionElement = document.createElement('div');
+        transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
+
+        const itemsList = transaction.items && Array.isArray(transaction.items)
+            ? transaction.items.map(item => `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`).join('')
+            : 'No items found';
+
+        const statusClass = getStatusClass(transaction.tStatus);
+
+        transactionElement.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="items">
+                        <strong>Items:</strong>
+                        <ul>${itemsList}</ul>
                     </div>
-                    <div class="col-md-3">
-                        <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
+                    <div class="transaction-date">
+                        <strong>Date:</strong> ${transaction.tDate}
                     </div>
                 </div>
-            `;
-            transactionItemsElement.appendChild(transactionElement);
-        }
+                <div class="col-md-3">
+                    <div class="total-coins">
+                        <strong>Total:</strong> ₹${transaction.tCoins.toFixed(2)}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="status ${statusClass}">
+                        <strong>Status:</strong> ${transaction.tStatus}
+                    </div>
+                </div>
+            </div>
+        `;
+        transactionItemsElement.appendChild(transactionElement);
     }
 }
+
+function getStatusClass(status) {
+    switch (status.toLowerCase()) {
+        case 'delivered':
+            return 'status-delivered';
+        case 'cancelled':
+            return 'status-cancelled';
+        case 'pending':
+            return 'status-pending';
+        default:
+            return '';
+    }
+}
+
 
 
 // // Assuming userDetails is an object containing the user details
@@ -1003,6 +1096,7 @@ const userRef = db.ref('userDetails').child(userDetails.id);
             if (updatedUserDetails.isOrderPending) {
                 // Display the pending transaction details
                 // You can implement this part as per your UI design
+                renderTransactions(updatedUserDetails.transactions);
             } else {
                 // Display the store list
                 // You can implement this part as per your UI design

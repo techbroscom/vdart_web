@@ -192,7 +192,7 @@
                 localStorage.setItem('userDetails', JSON.stringify(userData));
 
                 // Redirect based on user type
-                if (userData.userType === 'Employee') {
+                if (userData.userType === 'Employee' || userData.userType === 'Intern') {
                   window.location.replace('employee_screen.html');
                 } else if (userData.userType === 'Store') {
                   window.location.href = 'store_screen.html';

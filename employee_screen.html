@@ -745,7 +745,8 @@ function showStoreUi() {
         for (let storeKey in stores) {
             const store = stores[storeKey];
 
-            if (shouldShowStore(userDetails.location, store.location)) {
+            // if (shouldShowStore(userDetails.location, store.location)) {
+                if(['vd-mp', 'vd-mp-day', 'vd-mp-vdss'].includes(userDetails.location.toLowerCase()) && store.location.toLowerCase() === 'vd-mp'){
                 const storeItem = createCardElement(store);
                 storeItem.addEventListener('click', () => {
                     // Store the menu items for the selected store in localStorage

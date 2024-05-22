@@ -757,6 +757,21 @@ function showStoreUi() {
                 });
                 storesList.appendChild(storeItem);
                 storesFound = true;
+            } else if (store.location === userDetails.location && (
+                    userDetails.location.toLowerCase() !== 'vd-mp' &&
+                    userDetails.location.toLowerCase() !== 'vd-mp-day' &&
+                    userDetails.location.toLowerCase() !== 'vd-mp-vdss'
+                ))   {
+                const storeItem = createCardElement(store);
+                storeItem.addEventListener('click', () => {
+                    // Store the menu items for the selected store in localStorage
+                    localStorage.setItem('menuItems', JSON.stringify(store.menu));
+                    localStorage.setItem('storeDetails', JSON.stringify(store));
+                    // Navigate to the next page with store details and menu items
+                    window.location.replace('menu.html');
+                });
+                storesList.appendChild(storeItem);
+                storesFound = true;
             }
         }
 

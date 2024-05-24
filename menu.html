@@ -151,6 +151,49 @@
     width: 4rem;
     height: 4rem;
 }
+
+.form-switch .form-check-input {
+        display: none;
+    }
+
+    .form-switch .form-check-label {
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        background-color: #ccc;
+        border-radius: 17px;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .form-switch .form-check-label::before {
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border-radius: 15px;
+        background-color: white;
+        top: 2px;
+        left: 2px;
+        transition: left 0.3s;
+    }
+
+    .form-switch .form-check-input:checked + .form-check-label::before {
+        left: 28px;
+    }
+
+    .form-switch .form-check-input:focus + .form-check-label {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .form-switch .form-check-label::after {
+        content: 'Vegetarian';
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 80px;
+        font-size: 14px;
+    }
     </style>
 </head>
 <body class="notranslate">
@@ -163,6 +206,14 @@
 
 <div class="container">
     <h2 class="text-center">Menu</h2>
+    <div class="row mt-3">
+        <div class="col text-center">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="vegetarianSwitch">
+                <label class="form-check-label" for="vegetarianSwitch"></label>
+            </div>
+        </div>
+    </div>
     <div class="row" id="menuItems">
         <!-- Food Items -->
     </div>
@@ -274,16 +325,48 @@ function renderMenu(menuItems) {
     });
 }
 
+// function renderMenuItem(menuItem, container) {
+//     const disabledClass = menuItem.disabled ? 'disabled' : '';
+//     const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
+//     const menuItemElement = `
+//         <div class="col-md-4">
+//             <div class="card ${disabledClass}">
+//                 <div class="card-body">
+//                     <div class="row">
+//                         <div class="col">
+//                             <h5 class="card-title">${menuItem.name}</h5>
+//                         </div>
+//                         <div class="col-auto ml-auto">
+//                             ${outOfStockMessage}
+//                         </div>
+//                     </div>
+//                     <div class="d-flex justify-content-between align-items-center">
+//                         <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
+//                         <div class="quantity-input d-flex align-items-center">
+//                             <button class="btn btn-outline-secondary decrease-quantity">-</button>
+//                             <span class="quantity-display">1</span>
+//                             <button class="btn btn-outline-secondary increase-quantity">+</button>
+//                         </div>
+//                         <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     `;
+//     container.append(menuItemElement);
+// }
+
 function renderMenuItem(menuItem, container) {
     const disabledClass = menuItem.disabled ? 'disabled' : '';
-    const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
+    const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock ' + (menuItem.type === 'veg' ? '🥦' : '🔺') + '</p>' : ''+(menuItem.type === 'veg' ? '🥦' : '🔺');
+    const typeSymbol = menuItem.type === 'veg' ? '🟢' : '🟥'; // Add symbols for veg and non-veg types
     const menuItemElement = `
         <div class="col-md-4">
             <div class="card ${disabledClass}">
                 <div class="card-body">
                     <div class="row">
                         <div class="col">
-                            <h5 class="card-title">${menuItem.name}</h5>
+                            <h5 class="card-title">${menuItem.name}</h5> <!-- Include the type symbol -->
                         </div>
                         <div class="col-auto ml-auto">
                             ${outOfStockMessage}

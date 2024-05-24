@@ -222,18 +222,20 @@
         <div id="storeMenu" style="display:none;">
             <h2>Store Menu Data</h2>
             
+            <div id="addItemForm">
+                <input type="text" id="itemName" placeholder="Item Name">
+                <input type="number" id="itemPrice" placeholder="Item Price">
+                <button id="addItemButton">Add Item</button>
+            </div>
+
             <div>
                 <select id="storeSelect">
                     <option>Select a store</option>
                     <!-- Options will be populated dynamically -->
                 </select>
             </div>
+
             <div id="menuList"></div>
-            <div id="addItemForm">
-                <input type="text" id="itemName" placeholder="Item Name">
-                <input type="number" id="itemPrice" placeholder="Item Price">
-                <button id="addItemButton">Add Item</button>
-            </div>
 
         </div>
 
@@ -1598,6 +1600,408 @@ function showLogsHistory() {
     });
 }
 
+// var selectedStore = null; // Define selectedStore globally
+
+// function renderStores() {
+//     var storesRef = firebase.database().ref("stores");
+    
+//     storesRef.once("value", function(snapshot) {
+//         var storeSelect = document.getElementById("storeSelect");
+//         // Clear old values in storeSelect
+//         storeSelect.innerHTML = "";
+
+//         // Add default "Select a Store" option
+//         var defaultOption = document.createElement("option");
+//         defaultOption.text = "Select a Store";
+//         defaultOption.value = "";
+//         storeSelect.appendChild(defaultOption);
+        
+//         snapshot.forEach(function(childSnapshot) {
+//             var storeId = childSnapshot.key;
+//             var store = childSnapshot.val();
+//             var option = document.createElement("option");
+//             option.text = store.name;
+//             option.value = storeId;
+//             storeSelect.appendChild(option);
+//         });
+
+//         // // Add event listener to listen for changes in the dropdown
+//         // storeSelect.addEventListener("change", function() {
+//         //     selectedStore = snapshot.child(this.value).val(); // Set selectedStore globally
+//         //     showMenuItems(this.value, selectedStore.menu);
+//         // });
+
+//         // Add event listener to listen for changes in the dropdown
+//         storeSelect.addEventListener("change", function() {
+//             var selectedValue = this.value;
+//             if (selectedValue === "") {
+//                 // Clear the menu items list if "Select a Store" is selected
+//                 document.getElementById("menuList").innerHTML = "";
+//             } else {
+//                 selectedStore = snapshot.child(selectedValue).val(); // Set selectedStore globally
+//                 showMenuItems(selectedValue, selectedStore.menu);
+//             }
+//         });
+//     }, function(error) {
+//         console.error("Error getting stores: ", error);
+//     });
+// }
+
+// function deleteMenuItem(storeId, menuItemKey) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu`);
+//     storeRef.child(menuItemKey).remove().then(() => {
+//         console.log(`${menuItemKey} deleted from menu`);
+//         if (selectedStore) {
+//             showMenuItems(storeId, selectedStore.menu); // Refresh the menu items list
+//         }
+//     }).catch(error => {
+//         console.error('Error deleting item:', error);
+//     });
+// }
+
+// function showMenuItems(storeId) {
+//     var menuList = document.getElementById("menuList");
+//     if (!menuList) {
+//         console.error("Menu list element not found");
+//         return;
+//     }
+
+//     // Clear previous menu items
+//     menuList.innerHTML = "";
+
+//     // Display the form to add a new item
+//     var addItemForm = document.getElementById("addItemForm");
+//     if (addItemForm) {
+//         addItemForm.innerHTML = ""; // Clear previous form elements
+
+//         var itemNameInput = document.createElement("input");
+//         itemNameInput.type = "text";
+//         itemNameInput.id = "itemName";
+//         itemNameInput.placeholder = "Item Name";
+
+//         var itemPriceInput = document.createElement("input");
+//         itemPriceInput.type = "number";
+//         itemPriceInput.id = "itemPrice";
+//         itemPriceInput.placeholder = "Item Price";
+
+//         var addItemButton = document.createElement("button");
+//         addItemButton.textContent = "Add Item";
+//         addItemButton.addEventListener("click", function() {
+//             var itemName = itemNameInput.value.trim();
+//             var itemPrice = itemPriceInput.value.trim();
+
+//             if (itemName && itemPrice) {
+//                 addItem(storeId, itemName, itemPrice);
+//                 itemNameInput.value = "";
+//                 itemPriceInput.value = "";
+//             } else {
+//                 alert("Please enter item name and price.");
+//             }
+//         });
+
+//         addItemForm.appendChild(itemNameInput);
+//         addItemForm.appendChild(itemPriceInput);
+//         addItemForm.appendChild(addItemButton);
+//     }
+
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu`);
+    
+//     // Listen for changes in the menu items
+//     storeRef.on("value", function(snapshot) {
+//         menuList.innerHTML = ""; // Clear previous menu items
+
+//         snapshot.forEach(function(childSnapshot) {
+//             var menuItemKey = childSnapshot.key;
+//             var menuItem = childSnapshot.val();
+//             var menuItemElement = document.createElement("div");
+
+//             // Display the menu item name and price
+//             var itemInfo = document.createElement("span");
+//             itemInfo.textContent = menuItem.name + " - Price: " + menuItem.price;
+//             menuItemElement.appendChild(itemInfo);
+
+//             // Create an Edit button
+//             var editButton = document.createElement("button");
+//             editButton.textContent = "Edit";
+//             editButton.addEventListener("click", function(key, name, price) {
+//                 return function() {
+//                     var updatedName = prompt("Enter the updated name:", name);
+//                     var updatedPrice = prompt("Enter the updated price:", price);
+//                     if (updatedName !== null && updatedPrice !== null) {
+//                         editMenuItem(storeId, key, updatedName, updatedPrice);
+//                     } else {
+//                         alert("Please enter both name and price.");
+//                     }
+//                 };
+//             }(menuItemKey, menuItem.name, menuItem.price));
+//             menuItemElement.appendChild(editButton);
+
+//             // Create a Delete button
+//             var deleteButton = document.createElement("button");
+//             deleteButton.textContent = "Delete";
+//             deleteButton.addEventListener("click", function(key) {
+//                 return function() {
+//                     deleteMenuItem(storeId, key);
+//                 };
+//             }(menuItemKey));
+//             menuItemElement.appendChild(deleteButton);
+
+//             menuList.appendChild(menuItemElement);
+//         });
+//     });
+// }
+
+
+// function editMenuItem(storeId, menuItemKey, updatedName, updatedPrice) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+    
+//     // Check if updatedPrice is defined
+//     if (updatedPrice !== undefined) {
+//         storeRef.update({
+//             name: updatedName,
+//             price: updatedPrice
+//         }).then(() => {
+//             console.log(`${menuItemKey} updated in menu`);
+//             showMenuItems(storeId, selectedStore.menu); // Refresh the menu items list
+//         }).catch(error => {
+//             console.error('Error updating item:', error);
+//         });
+//     } else {
+//         console.error('Error updating item: Price is undefined');
+//     }
+// }
+
+// function addItem(storeId, itemName, itemPrice) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu/${itemName}`);
+//     storeRef.set({
+//         name: itemName,
+//         price: itemPrice,
+//         disabled: false
+//     }).then(() => {
+//         console.log(`${itemName} added to menu`);
+//         renderStores(); // Refresh the store list
+//     }).catch(error => {
+//         console.error('Error adding item:', error);
+//     });
+// }
+
+// var selectedStore = null; // Define selectedStore globally
+
+// function renderStores() {
+//     var storesRef = firebase.database().ref("stores");
+    
+//     storesRef.once("value", function(snapshot) {
+//         var storeSelect = document.getElementById("storeSelect");
+//         // Clear old values in storeSelect
+//         storeSelect.innerHTML = "";
+
+//         // Add default "Select a Store" option
+//         var defaultOption = document.createElement("option");
+//         defaultOption.text = "Select a Store";
+//         defaultOption.value = "";
+//         storeSelect.appendChild(defaultOption);
+        
+//         snapshot.forEach(function(childSnapshot) {
+//             var storeId = childSnapshot.key;
+//             var store = childSnapshot.val();
+//             var option = document.createElement("option");
+//             option.text = store.name;
+//             option.value = storeId;
+//             storeSelect.appendChild(option);
+//         });
+
+//         // Remove previous event listener before adding a new one
+//         storeSelect.removeEventListener("change", storeSelectChangeListener);
+
+//         // Add event listener to listen for changes in the dropdown
+//         storeSelect.addEventListener("change", storeSelectChangeListener);
+//     }, function(error) {
+//         console.error("Error getting stores: ", error);
+//     });
+// }
+
+// function storeSelectChangeListener(event) {
+//     var selectedValue = event.target.value;
+//     if (selectedValue === "") {
+//         // Clear the menu items list if "Select a Store" is selected
+//         document.getElementById("menuList").innerHTML = "";
+//     } else {
+//         var storeRef = firebase.database().ref(`stores/${selectedValue}`);
+//         storeRef.once("value", function(snapshot) {
+//             selectedStore = snapshot.val(); // Set selectedStore globally
+//             showMenuItems(selectedValue);
+//         });
+//     }
+// }
+
+// function deleteMenuItem(storeId, menuItemKey) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+//     storeRef.remove().then(() => {
+//         console.log(`${menuItemKey} deleted from menu`);
+//         if (selectedStore) {
+//             storeRef.once("value", function(snapshot) {
+//                 selectedStore.menu = snapshot.val(); // Update selectedStore with the latest menu
+//                 showMenuItems(storeId);
+//             });
+//         }
+//     }).catch(error => {
+//         console.error('Error deleting item:', error);
+//     });
+// }
+
+// function showMenuItems(storeId) {
+//     var menuList = document.getElementById("menuList");
+//     if (!menuList) {
+//         console.error("Menu list element not found");
+//         return;
+//     }
+
+//     // Clear previous menu items
+//     menuList.innerHTML = "";
+
+//     // Display the form to add a new item
+//     var addItemForm = document.getElementById("addItemForm");
+//     if (addItemForm) {
+//         addItemForm.innerHTML = ""; // Clear previous form elements
+
+//         var itemNameInput = document.createElement("input");
+//         itemNameInput.type = "text";
+//         itemNameInput.id = "itemName";
+//         itemNameInput.placeholder = "Item Name";
+
+//         var itemPriceInput = document.createElement("input");
+//         itemPriceInput.type = "number";
+//         itemPriceInput.id = "itemPrice";
+//         itemPriceInput.placeholder = "Item Price";
+
+//         var itemTypeSelect = document.createElement("select");
+//         itemTypeSelect.id = "itemType";
+//         var vegOption = document.createElement("option");
+//         vegOption.value = "veg";
+//         vegOption.text = "Vegetarian";
+//         var nonVegOption = document.createElement("option");
+//         nonVegOption.value = "non-veg";
+//         nonVegOption.text = "Non-Vegetarian";
+//         itemTypeSelect.appendChild(vegOption);
+//         itemTypeSelect.appendChild(nonVegOption);
+
+//         var addItemButton = document.createElement("button");
+//         addItemButton.textContent = "Add Item";
+//         addItemButton.disabled = true; // Initially disabled
+
+//         itemNameInput.addEventListener("input", function() {
+//             addItemButton.disabled = !(itemNameInput.value.trim() && itemPriceInput.value.trim());
+//         });
+
+//         itemPriceInput.addEventListener("input", function() {
+//             addItemButton.disabled = !(itemNameInput.value.trim() && itemPriceInput.value.trim());
+//         });
+
+//         addItemButton.addEventListener("click", function() {
+//             var itemName = itemNameInput.value.trim();
+//             var itemPrice = itemPriceInput.value.trim();
+//             var itemType = itemTypeSelect.value;
+
+//             if (itemName && itemPrice) {
+//                 addItem(storeId, itemName, itemPrice, itemType);
+//                 itemNameInput.value = "";
+//                 itemPriceInput.value = "";
+//                 itemTypeSelect.value = "veg";
+//                 addItemButton.disabled = true; // Disable until both inputs are filled again
+//             } else {
+//                 alert("Please enter item name and price.");
+//             }
+//         });
+
+//         addItemForm.appendChild(itemNameInput);
+//         addItemForm.appendChild(itemPriceInput);
+//         addItemForm.appendChild(itemTypeSelect);
+//         addItemForm.appendChild(addItemButton);
+//     }
+
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu`);
+    
+//     // Listen for changes in the menu items
+//     storeRef.on("value", function(snapshot) {
+//         menuList.innerHTML = ""; // Clear previous menu items
+
+//         snapshot.forEach(function(childSnapshot) {
+//             var menuItemKey = childSnapshot.key;
+//             var menuItem = childSnapshot.val();
+//             var menuItemElement = document.createElement("div");
+
+//             // Display the menu item name and price
+//             var itemInfo = document.createElement("span");
+//             itemInfo.textContent = menuItem.name + " - Price: " + menuItem.price + " - Type: " + menuItem.type;
+//             menuItemElement.appendChild(itemInfo);
+
+//             // Create an Edit button
+//             var editButton = document.createElement("button");
+//             editButton.textContent = "Edit";
+//             editButton.addEventListener("click", function(key, name, price, type) {
+//                 return function() {
+//                     var updatedName = prompt("Enter the updated name:", name);
+//                     var updatedPrice = prompt("Enter the updated price:", price);
+//                     var updatedType = prompt("Enter the updated type (veg/non-veg):", type);
+//                     if (updatedName !== null && updatedPrice !== null && updatedType !== null) {
+//                         editMenuItem(storeId, key, updatedName, updatedPrice, updatedType);
+//                     } else {
+//                         alert("Please enter name, price, and type.");
+//                     }
+//                 };
+//             }(menuItemKey, menuItem.name, menuItem.price, menuItem.type));
+//             menuItemElement.appendChild(editButton);
+
+//             // Create a Delete button
+//             var deleteButton = document.createElement("button");
+//             deleteButton.textContent = "Delete";
+//             deleteButton.addEventListener("click", function(key) {
+//                 return function() {
+//                     deleteMenuItem(storeId, key);
+//                 };
+//             }(menuItemKey));
+//             menuItemElement.appendChild(deleteButton);
+
+//             menuList.appendChild(menuItemElement);
+//         });
+//     });
+// }
+
+// function editMenuItem(storeId, menuItemKey, updatedName, updatedPrice, updatedType) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+    
+//     // Check if updatedPrice and updatedType are defined
+//     if (updatedPrice !== undefined && updatedType !== undefined) {
+//         storeRef.update({
+//             name: updatedName,
+//             price: updatedPrice,
+//             type: updatedType
+//         }).then(() => {
+//             console.log(`${menuItemKey} updated in menu`);
+//             showMenuItems(storeId); // Refresh the menu items list
+//         }).catch(error => {
+//             console.error('Error updating item:', error);
+//         });
+//     } else {
+//         console.error('Error updating item: Price or type is undefined');
+//     }
+// }
+
+// function addItem(storeId, itemName, itemPrice, itemType) {
+//     const storeRef = firebase.database().ref(`stores/${storeId}/menu`).push();
+//     storeRef.set({
+//         name: itemName,
+//         price: itemPrice,
+//         type: itemType,
+//         disabled: false
+//     }).then(() => {
+//         console.log(`${itemName} added to menu`);
+//         renderStores(); // Refresh the store list
+//     }).catch(error => {
+//         console.error('Error adding item:', error);
+//     });
+// }
+
 var selectedStore = null; // Define selectedStore globally
 
 function renderStores() {
@@ -1623,34 +2027,39 @@ function renderStores() {
             storeSelect.appendChild(option);
         });
 
-        // // Add event listener to listen for changes in the dropdown
-        // storeSelect.addEventListener("change", function() {
-        //     selectedStore = snapshot.child(this.value).val(); // Set selectedStore globally
-        //     showMenuItems(this.value, selectedStore.menu);
-        // });
+        // Remove previous event listener before adding a new one
+        storeSelect.removeEventListener("change", storeSelectChangeListener);
 
         // Add event listener to listen for changes in the dropdown
-        storeSelect.addEventListener("change", function() {
-            var selectedValue = this.value;
-            if (selectedValue === "") {
-                // Clear the menu items list if "Select a Store" is selected
-                document.getElementById("menuList").innerHTML = "";
-            } else {
-                selectedStore = snapshot.child(selectedValue).val(); // Set selectedStore globally
-                showMenuItems(selectedValue, selectedStore.menu);
-            }
-        });
+        storeSelect.addEventListener("change", storeSelectChangeListener);
     }, function(error) {
         console.error("Error getting stores: ", error);
     });
 }
 
+function storeSelectChangeListener(event) {
+    var selectedValue = event.target.value;
+    if (selectedValue === "") {
+        // Clear the menu items list if "Select a Store" is selected
+        document.getElementById("menuList").innerHTML = "";
+    } else {
+        var storeRef = firebase.database().ref(`stores/${selectedValue}`);
+        storeRef.once("value", function(snapshot) {
+            selectedStore = snapshot.val(); // Set selectedStore globally
+            showMenuItems(selectedValue);
+        });
+    }
+}
+
 function deleteMenuItem(storeId, menuItemKey) {
-    const storeRef = firebase.database().ref(`stores/${storeId}/menu`);
-    storeRef.child(menuItemKey).remove().then(() => {
+    const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+    storeRef.remove().then(() => {
         console.log(`${menuItemKey} deleted from menu`);
         if (selectedStore) {
-            showMenuItems(storeId, selectedStore.menu); // Refresh the menu items list
+            storeRef.once("value", function(snapshot) {
+                selectedStore.menu = snapshot.val(); // Update selectedStore with the latest menu
+                showMenuItems(storeId);
+            });
         }
     }).catch(error => {
         console.error('Error deleting item:', error);
@@ -1682,16 +2091,40 @@ function showMenuItems(storeId) {
         itemPriceInput.id = "itemPrice";
         itemPriceInput.placeholder = "Item Price";
 
+        var itemTypeSelect = document.createElement("select");
+        itemTypeSelect.id = "itemType";
+        var vegOption = document.createElement("option");
+        vegOption.value = "veg";
+        vegOption.text = "Vegetarian";
+        var nonVegOption = document.createElement("option");
+        nonVegOption.value = "non-veg";
+        nonVegOption.text = "Non-Vegetarian";
+        itemTypeSelect.appendChild(vegOption);
+        itemTypeSelect.appendChild(nonVegOption);
+
         var addItemButton = document.createElement("button");
         addItemButton.textContent = "Add Item";
+        addItemButton.disabled = true; // Initially disabled
+
+        itemNameInput.addEventListener("input", function() {
+            addItemButton.disabled = !(itemNameInput.value.trim() && itemPriceInput.value.trim());
+        });
+
+        itemPriceInput.addEventListener("input", function() {
+            addItemButton.disabled = !(itemNameInput.value.trim() && itemPriceInput.value.trim());
+        });
+
         addItemButton.addEventListener("click", function() {
             var itemName = itemNameInput.value.trim();
             var itemPrice = itemPriceInput.value.trim();
+            var itemType = itemTypeSelect.value;
 
             if (itemName && itemPrice) {
-                addItem(storeId, itemName, itemPrice);
+                addItem(storeId, itemName, itemPrice, itemType);
                 itemNameInput.value = "";
                 itemPriceInput.value = "";
+                itemTypeSelect.value = "veg";
+                addItemButton.disabled = true; // Disable until both inputs are filled again
             } else {
                 alert("Please enter item name and price.");
             }
@@ -1699,6 +2132,7 @@ function showMenuItems(storeId) {
 
         addItemForm.appendChild(itemNameInput);
         addItemForm.appendChild(itemPriceInput);
+        addItemForm.appendChild(itemTypeSelect);
         addItemForm.appendChild(addItemButton);
     }
 
@@ -1706,74 +2140,212 @@ function showMenuItems(storeId) {
     
     // Listen for changes in the menu items
     storeRef.on("value", function(snapshot) {
-        menuList.innerHTML = ""; // Clear previous menu items
+            var menuList = document.getElementById("menuList");
+            menuList.innerHTML = ""; // Clear previous menu items
 
-        snapshot.forEach(function(childSnapshot) {
-            var menuItemKey = childSnapshot.key;
-            var menuItem = childSnapshot.val();
-            var menuItemElement = document.createElement("div");
+            snapshot.forEach(function(childSnapshot) {
+                var menuItemKey = childSnapshot.key;
+                var menuItem = childSnapshot.val();
+                var menuItemElement = document.createElement("div");
+                menuItemElement.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
 
-            // Display the menu item name and price
-            var itemInfo = document.createElement("span");
-            itemInfo.textContent = menuItem.name + " - Price: " + menuItem.price;
-            menuItemElement.appendChild(itemInfo);
+                // Display the menu item name and price
+                var itemInfo = document.createElement("div");
+                itemInfo.innerHTML = `<strong>${menuItem.name}</strong><br>Price: ${menuItem.price}<br>Type: ${menuItem.type}`;
+                menuItemElement.appendChild(itemInfo);
 
-            // Create an Edit button
-            var editButton = document.createElement("button");
-            editButton.textContent = "Edit";
-            editButton.addEventListener("click", function(key, name, price) {
-                return function() {
-                    var updatedName = prompt("Enter the updated name:", name);
-                    var updatedPrice = prompt("Enter the updated price:", price);
-                    if (updatedName !== null && updatedPrice !== null) {
-                        editMenuItem(storeId, key, updatedName, updatedPrice);
-                    } else {
-                        alert("Please enter both name and price.");
-                    }
-                };
-            }(menuItemKey, menuItem.name, menuItem.price));
-            menuItemElement.appendChild(editButton);
+                // Create buttons container
+                var buttonsContainer = document.createElement("div");
 
-            // Create a Delete button
-            var deleteButton = document.createElement("button");
-            deleteButton.textContent = "Delete";
-            deleteButton.addEventListener("click", function(key) {
-                return function() {
-                    deleteMenuItem(storeId, key);
-                };
-            }(menuItemKey));
-            menuItemElement.appendChild(deleteButton);
+                // Create an Edit button
+                var editButton = document.createElement("button");
+                editButton.classList.add("btn", "btn-primary", "mr-2");
+                editButton.textContent = "Edit";
+                editButton.addEventListener("click", function(key, name, price, type) {
+                    return function() {
+                        showEditModal(storeId, key, name, price, type);
+                    };
+                }(menuItemKey, menuItem.name, menuItem.price, menuItem.type));
+                buttonsContainer.appendChild(editButton);
 
-            menuList.appendChild(menuItemElement);
+                // Create a Delete button
+                var deleteButton = document.createElement("button");
+                deleteButton.classList.add("btn", "btn-danger");
+                deleteButton.textContent = "Delete";
+                deleteButton.addEventListener("click", function(key) {
+                    return function() {
+                        deleteMenuItem(storeId, key);
+                    };
+                }(menuItemKey));
+                buttonsContainer.appendChild(deleteButton);
+
+                menuItemElement.appendChild(buttonsContainer);
+                menuList.appendChild(menuItemElement);
+            });
         });
-    });
 }
 
-
-function editMenuItem(storeId, menuItemKey, updatedName, updatedPrice) {
-    const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+// function showEditModal(storeId, menuItemKey, name, price, type) {
+//     // Create a modal or a form for editing
+//     var modal = document.getElementById("editModal");
+//     if (!modal) {
+//         modal = document.createElement("div");
+//         modal.id = "editModal";
+//         modal.style.position = "fixed";
+//         modal.style.top = "50%";
+//         modal.style.left = "50%";
+//         modal.style.transform = "translate(-50%, -50%)";
+//         modal.style.backgroundColor = "#fff";
+//         modal.style.padding = "20px";
+//         modal.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.5)";
+//         modal.style.zIndex = "1000";
+//         document.body.appendChild(modal);
+//     }
     
-    // Check if updatedPrice is defined
-    if (updatedPrice !== undefined) {
-        storeRef.update({
-            name: updatedName,
-            price: updatedPrice
-        }).then(() => {
-            console.log(`${menuItemKey} updated in menu`);
-            showMenuItems(storeId, selectedStore.menu); // Refresh the menu items list
-        }).catch(error => {
-            console.error('Error updating item:', error);
+//     modal.innerHTML = ""; // Clear previous content
+
+//     var itemNameInput = document.createElement("input");
+//     itemNameInput.type = "text";
+//     itemNameInput.value = name;
+//     itemNameInput.placeholder = "Item Name";
+
+//     var itemPriceInput = document.createElement("input");
+//     itemPriceInput.type = "number";
+//     itemPriceInput.value = price;
+//     itemPriceInput.placeholder = "Item Price";
+
+//     var itemTypeSelect = document.createElement("select");
+//     var vegOption = document.createElement("option");
+//     vegOption.value = "veg";
+//     vegOption.text = "Vegetarian";
+//     var nonVegOption = document.createElement("option");
+//     nonVegOption.value = "non-veg";
+//     nonVegOption.text = "Non-Vegetarian";
+//     itemTypeSelect.appendChild(vegOption);
+//     itemTypeSelect.appendChild(nonVegOption);
+//     itemTypeSelect.value = type;
+
+//     var saveButton = document.createElement("button");
+//     saveButton.textContent = "Save";
+//     saveButton.addEventListener("click", function() {
+//         var updatedName = itemNameInput.value.trim();
+//         var updatedPrice = itemPriceInput.value.trim();
+//         var updatedType = itemTypeSelect.value;
+//         if (updatedName && updatedPrice && updatedType) {
+//             editMenuItem(storeId, menuItemKey, updatedName, updatedPrice, updatedType);
+//             document.body.removeChild(modal); // Close the modal
+//         } else {
+//             alert("Please enter name, price, and type.");
+//         }
+//     });
+
+//     var cancelButton = document.createElement("button");
+//     cancelButton.textContent = "Cancel";
+//     cancelButton.addEventListener("click", function() {
+//         document.body.removeChild(modal); // Close the modal
+//     });
+
+//     modal.appendChild(itemNameInput);
+//     modal.appendChild(itemPriceInput);
+//     modal.appendChild(itemTypeSelect);
+//     modal.appendChild(saveButton);
+//     modal.appendChild(cancelButton);
+// }
+
+function showEditModal(storeId, menuItemKey, name, price, type) {
+    var modal = document.getElementById("editModal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "editModal";
+        modal.className = "modal";
+        modal.setAttribute("tabindex", "-1");
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-labelledby", "editModalLabel");
+        modal.setAttribute("aria-hidden", "true");
+
+        modal.innerHTML = `
+        <div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit Menu Item</h5>
+        </div>
+        <div class="modal-body">
+            <input type="text" class="form-control" value="${name}" placeholder="Item Name">
+            <input type="number" class="form-control" value="${price}" placeholder="Item Price">
+            <select class="form-control">
+                <option value="veg" ${type === 'veg' ? 'selected' : ''}>Vegetarian</option>
+                <option value="non-veg" ${type === 'non-veg' ? 'selected' : ''}>Non-Vegetarian</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+</div>
+        `;
+
+        document.body.appendChild(modal);
+
+        var saveButton = modal.querySelector(".btn-primary");
+        saveButton.addEventListener("click", function() {
+            var updatedName = modal.querySelector("input[type='text']").value.trim();
+            var updatedPrice = modal.querySelector("input[type='number']").value.trim();
+            var updatedType = modal.querySelector("select").value;
+            if (updatedName && updatedPrice && updatedType) {
+                editMenuItem(storeId, menuItemKey, updatedName, updatedPrice, updatedType);
+                document.body.removeChild(modal);
+            } else {
+                alert("Please enter name, price, and type.");
+            }
         });
+
+        var cancelButton = modal.querySelector(".btn-secondary");
+        cancelButton.addEventListener("click", function() {
+            document.body.removeChild(modal);
+        });
+
+        modal.style.display = "block";
+        modal.classList.add("show");
+        modal.setAttribute("aria-modal", "true");
     } else {
-        console.error('Error updating item: Price is undefined');
+        var nameInput = modal.querySelector("input[type='text']");
+        nameInput.value = name;
+
+        var priceInput = modal.querySelector("input[type='number']");
+        priceInput.value = price;
+
+        var typeSelect = modal.querySelector("select");
+        typeSelect.value = type;
+
+        modal.style.display = "block";
+        modal.classList.add("show");
+        modal.setAttribute("aria-modal", "true");
     }
 }
 
-function addItem(storeId, itemName, itemPrice) {
-    const storeRef = firebase.database().ref(`stores/${storeId}/menu/${itemName}`);
-    storeRef.set({
+
+function editMenuItem(storeId, menuItemKey, updatedName, updatedPrice, updatedType) {
+    const storeRef = firebase.database().ref(`stores/${storeId}/menu/${menuItemKey}`);
+    
+    storeRef.update({
+        name: updatedName,
+        price: updatedPrice,
+        type: updatedType
+    }).then(() => {
+        console.log(`${menuItemKey} updated in menu`);
+        showMenuItems(storeId); // Refresh the menu items list
+    }).catch(error => {
+        console.error('Error updating item:', error);
+    });
+}
+
+function addItem(storeId, itemName, itemPrice, itemType) {
+const storeRef = firebase.database().ref(`stores/${storeId}/menu/${itemName}`);
+storeRef.set({
         name: itemName,
         price: itemPrice,
+        type: itemType,
         disabled: false
     }).then(() => {
         console.log(`${itemName} added to menu`);
@@ -1782,6 +2354,7 @@ function addItem(storeId, itemName, itemPrice) {
         console.error('Error adding item:', error);
     });
 }
+
 
 document.getElementById('dateRangeForm').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the form from submitting

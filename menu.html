@@ -189,6 +189,34 @@ input[type="checkbox"]:checked {
   background: #00ed64;
 }
 
+.veg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(13, 145, 13); /* Green color with some transparency */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Ensure it's above other elements */
+    color: white;
+    font-size: 24px;
+}
+
+.veg-overlay span {
+    animation: zoomIn 0.5s ease forwards;
+}
+
+@keyframes zoomIn {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
     </style>
 </head>
 <body class="notranslate">
@@ -333,11 +361,14 @@ vegToggle = document.getElementById('vegToggle');
 vegToggle.addEventListener('change', renderMenu);
 const navbar = document.querySelector('.navbar');
 
+
 vegToggle.addEventListener('change', function() {
     const showVeg = this.checked;
     if (showVeg) {
         navbar.classList.add('bg-success'); // Add green color when toggled to show veg items
         navbar.classList.remove('bg-primary');
+        // Call the function when the veg filter is enabled
+showVegModeOverlay();
     } else {
         navbar.classList.remove('bg-success');
         navbar.classList.add('bg-primary');
@@ -381,6 +412,62 @@ function renderMenu() {
         .forEach(menuItem => {
             renderMenuItem(menuItem, menuContainer);
         });
+
+        $('.decrease-quantity').click(function() {
+            const input = $(this).siblings('.quantity-display');
+            let value = parseInt(input.text());
+            if (value > 1) {
+                value--;
+                input.text(value);
+            }
+        });
+
+$('.increase-quantity').click(function() {
+            const input = $(this).siblings('.quantity-display');
+            let value = parseInt(input.text());
+            value++;
+            input.text(value);
+        });
+
+// Initialize total outside the click event handler
+$('.add-to-cart').click(function() {
+    const name = $(this).data('name');
+    const price = parseFloat($(this).data('price'));
+    const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
+    let quantity = parseInt(quantityDisplay.text());
+
+    if (!isNaN(price) && !isNaN(quantity)) {
+        // Check if item is already in cart
+        const existingItem = orderList.find(`.item-name:contains('${name}')`).closest('li');
+        if (existingItem.length > 0) {
+            const existingQuantity = parseInt(existingItem.find('.item-quantity').text());
+            const newQuantity = existingQuantity + quantity;
+            const newPrice = price * newQuantity;
+            existingItem.find('.item-quantity').text(newQuantity);
+            existingItem.find('.item-total-price').text(`₹ ${newPrice.toFixed(2)}`);
+            total = total - (price * existingQuantity) + newPrice;
+        } else {
+            total += price * quantity;
+            orderList.append(`
+                <li class="list-group-item border-0">
+                    <div class="row align-items-center">
+                        <div class="col item-name">${name}</div>
+                        <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
+                        <div class="col item-total-price">₹ ${(price * quantity).toFixed(2)}</div>
+                        <div class="col-auto">
+                            <button class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                </li>
+            `);
+        }
+        // Update total outside the if-else block
+        totalPrice.text(`₹${total.toFixed(2)}`);
+        orderSummary.addClass('show');
+        toggleSummary.addClass('show');
+    }
+    $('.btn-success').prop('disabled', total <= 0);
+});
 }
 
 
@@ -446,63 +533,6 @@ function renderMenuItem(menuItem, container) {
     `;
     container.append(menuItemElement);
 }
-
-
-$('.decrease-quantity').click(function() {
-            const input = $(this).siblings('.quantity-display');
-            let value = parseInt(input.text());
-            if (value > 1) {
-                value--;
-                input.text(value);
-            }
-        });
-
-$('.increase-quantity').click(function() {
-            const input = $(this).siblings('.quantity-display');
-            let value = parseInt(input.text());
-            value++;
-            input.text(value);
-        });
-
-// Initialize total outside the click event handler
-$('.add-to-cart').click(function() {
-    const name = $(this).data('name');
-    const price = parseFloat($(this).data('price'));
-    const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
-    let quantity = parseInt(quantityDisplay.text());
-
-    if (!isNaN(price) && !isNaN(quantity)) {
-        // Check if item is already in cart
-        const existingItem = orderList.find(`.item-name:contains('${name}')`).closest('li');
-        if (existingItem.length > 0) {
-            const existingQuantity = parseInt(existingItem.find('.item-quantity').text());
-            const newQuantity = existingQuantity + quantity;
-            const newPrice = price * newQuantity;
-            existingItem.find('.item-quantity').text(newQuantity);
-            existingItem.find('.item-total-price').text(`₹ ${newPrice.toFixed(2)}`);
-            total = total - (price * existingQuantity) + newPrice;
-        } else {
-            total += price * quantity;
-            orderList.append(`
-                <li class="list-group-item border-0">
-                    <div class="row align-items-center">
-                        <div class="col item-name">${name}</div>
-                        <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
-                        <div class="col item-total-price">₹ ${(price * quantity).toFixed(2)}</div>
-                        <div class="col-auto">
-                            <button class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </div>
-                </li>
-            `);
-        }
-        // Update total outside the if-else block
-        totalPrice.text(`₹${total.toFixed(2)}`);
-        orderSummary.addClass('show');
-        toggleSummary.addClass('show');
-    }
-    $('.btn-success').prop('disabled', total <= 0);
-});
 
 
 $(document).on('click', '.remove-item', function() {
@@ -730,6 +760,28 @@ database.ref(`userDetails/${userDetails.id}`).transaction((userData) => {
         // Redirect to the login page
         window.location.replace('employee_screen.html');
         });
+
+// Function to show veg mode overlay
+function showVegModeOverlay() {
+    const overlay = document.createElement('div');
+    overlay.classList.add('veg-overlay');
+    
+    const span = document.createElement('span');
+    span.textContent = 'VEG MODE ON';
+    overlay.appendChild(span);
+
+    document.body.appendChild(overlay);
+
+    // Add animation class after a short delay to allow the overlay to be rendered
+    setTimeout(() => {
+        span.classList.add('zoom-in');
+    }, 100);
+
+    // Remove the overlay after the animation duration + 100ms buffer
+    setTimeout(() => {
+        overlay.remove();
+    }, 1200); // Animation duration (0.5s) + 2s delay + 100ms buffer
+}
 
 
 </script>

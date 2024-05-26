@@ -152,48 +152,43 @@
     height: 4rem;
 }
 
-.form-switch .form-check-input {
-        display: none;
-    }
+input[type="checkbox"] {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgb(71, 65, 65);
+  outline: none;
+  border-radius: 2rem;
+  cursor: pointer;
+  box-shadow: inset 0 0 5px rgb(0 0 0 / 50%);
+}
 
-    .form-switch .form-check-label {
-        display: inline-block;
-        width: 60px;
-        height: 34px;
-        background-color: #ccc;
-        border-radius: 17px;
-        position: relative;
-        cursor: pointer;
-    }
+input[type="checkbox"]::before {
+  content: ""; /* Broccoli emoji */
+  font-size: 20px; /* Adjust size as needed */
+  line-height: 30px; /* Center vertically */
+  text-align: center; /* Center horizontally */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  transition: 0.5s;
+}
 
-    .form-switch .form-check-label::before {
-        content: '';
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        border-radius: 15px;
-        background-color: white;
-        top: 2px;
-        left: 2px;
-        transition: left 0.3s;
-    }
+input[type="checkbox"]:checked::before {
+  transform: translateX(100%);
+  background: #fff;
+}
 
-    .form-switch .form-check-input:checked + .form-check-label::before {
-        left: 28px;
-    }
+input[type="checkbox"]:checked {
+  background: #00ed64;
+}
 
-    .form-switch .form-check-input:focus + .form-check-label {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-
-    .form-switch .form-check-label::after {
-        content: 'Vegetarian';
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        left: 80px;
-        font-size: 14px;
-    }
     </style>
 </head>
 <body class="notranslate">
@@ -204,20 +199,19 @@
         <button id="backToHomeButton" class="btn btn-outline-light">Back</button>
     </nav>
 
-<div class="container">
-    <h2 class="text-center">Menu</h2>
-    <div class="row mt-3">
-        <div class="col text-center">
+    <div class="container mt-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="mb-0 flex-grow-1 text-center">Menu</h3>
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="vegetarianSwitch">
-                <label class="form-check-label" for="vegetarianSwitch"></label>
+                <input class="form-check-input" type="checkbox" id="vegToggle">
+                <label class="form-check-label" for="vegToggle">Veg</label>
             </div>
         </div>
+        <div class="row mt-4" id="menuItems">
+            <!-- Food Items -->
+        </div>
     </div>
-    <div class="row" id="menuItems">
-        <!-- Food Items -->
-    </div>
-</div>
+
 <div class="loading-screen">
     <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -269,6 +263,19 @@
             toggleSummary.toggleClass('show');
         });
 
+        let vegToggle; // Declare vegToggle variable outside renderMenu function
+
+document.addEventListener('DOMContentLoaded', function() {
+    vegToggle = document.getElementById('vegToggle'); // Initialize vegToggle inside DOMContentLoaded
+
+    if (vegToggle) {
+        vegToggle.addEventListener('change', renderMenu);
+        renderMenu(); // Initial render
+    } else {
+        console.log('Veg toggle element not found');
+    }
+});
+
     // Get a reference to the database service
     const database = firebase.database();
 
@@ -290,10 +297,55 @@ if(userDetails.isOrderPending){
 }
 
 
-// Display menu items
-const menuItems = JSON.parse(localStorage.getItem('menuItems'));
-renderMenu(menuItems);
-function renderMenu(menuItems) {
+// function renderMenu(menuItems) {
+//     if (!menuItems) {
+//         console.log('Menu items not found');
+//         return;
+//     }
+
+//     const enabledItems = [];
+//     const disabledItems = [];
+
+//     // Grouping enabled and disabled items
+//     Object.values(menuItems).forEach(menuItem => {
+//         if (menuItem.disabled) {
+//             disabledItems.push(menuItem);
+//         } else {
+//             enabledItems.push(menuItem);
+//         }
+//     });
+
+//     const menuContainer = $('#menuItems');
+//     menuContainer.empty(); // Clear previous menu items
+
+//     // Render enabled items
+//     enabledItems.forEach(menuItem => {
+//         renderMenuItem(menuItem, menuContainer);
+//     });
+
+//     // Render disabled items
+//     disabledItems.forEach(menuItem => {
+//         renderMenuItem(menuItem, menuContainer);
+//     });
+// }
+renderMenu();
+vegToggle = document.getElementById('vegToggle');
+vegToggle.addEventListener('change', renderMenu);
+const navbar = document.querySelector('.navbar');
+
+vegToggle.addEventListener('change', function() {
+    const showVeg = this.checked;
+    if (showVeg) {
+        navbar.classList.add('bg-success'); // Add green color when toggled to show veg items
+        navbar.classList.remove('bg-primary');
+    } else {
+        navbar.classList.remove('bg-success');
+        navbar.classList.add('bg-primary');
+    }
+});
+
+function renderMenu() {
+    const menuItems = JSON.parse(localStorage.getItem('menuItems'));
     if (!menuItems) {
         console.log('Menu items not found');
         return;
@@ -314,16 +366,23 @@ function renderMenu(menuItems) {
     const menuContainer = $('#menuItems');
     menuContainer.empty(); // Clear previous menu items
 
-    // Render enabled items
-    enabledItems.forEach(menuItem => {
-        renderMenuItem(menuItem, menuContainer);
-    });
+    const showVeg = vegToggle ? vegToggle.checked : false; // Check if vegToggle is defined
 
-    // Render disabled items
-    disabledItems.forEach(menuItem => {
-        renderMenuItem(menuItem, menuContainer);
-    });
+    // Filter and render enabled items based on toggle state
+    enabledItems
+        .filter(menuItem => showVeg ? menuItem.type === 'veg' : true)
+        .forEach(menuItem => {
+            renderMenuItem(menuItem, menuContainer);
+        });
+
+    // Filter and render disabled items based on toggle state
+    disabledItems
+        .filter(menuItem => showVeg ? menuItem.type === 'veg' : true)
+        .forEach(menuItem => {
+            renderMenuItem(menuItem, menuContainer);
+        });
 }
+
 
 // function renderMenuItem(menuItem, container) {
 //     const disabledClass = menuItem.disabled ? 'disabled' : '';
@@ -553,218 +612,6 @@ const orderNum = storeDetails.orderCounter + 1;
     }
 });
 
-
-    // Push the transaction to the Firebase database
-    const transactionsRef = database.ref('transactions');
-// transactionsRef.child(storeDetails.id).child(transactionId).set(transaction)
-//         .then(() => {
-//             // Deduct the amount from the user's balance
-//             const newBalance = userDetails.balance - total;
-//             const newCoinsUtil = userDetails.coinsUtil + total;
-//             const orderStore = storeDetails.id;
-
-//     // Update the user's balance in the local storage
-//     userDetails.lastTranDate = currentDate;
-//     userDetails.balance = newBalance;
-//     userDetails.isOrderPending = true;
-//     userDetails.orderStore = orderStore
-//     userDetails.pendingTransId = transactionId;    
-//     userDetails.message = "Order is pending...";
-//     userDetails.coinsUtil = newCoinsUtil
-//     localStorage.setItem('userDetails', JSON.stringify(userDetails));
-//             database.ref('userDetails/' + userDetails.id).update({
-//                 balance: newBalance,
-//                 isOrderPending: true,
-//                 lastTranDate: currentDate,
-//                 pendingTransId: transactionId,
-//                 orderStore:  orderStore,
-//                 coinsUtil: newCoinsUtil,
-//                 message: "Order is pending..."
-//             }).then(() => {
-//                 localStorage.setItem('userDetails', JSON.stringify(userDetails));
-//                 database.ref('stores/' + storeDetails.id + '/orderCounter').set(orderNum).then(() => {
-                    
-
-//                     const userRef = firebase.database().ref(`userDetails/${userDetails.id}/transactions`);
-//                     userRef.once('value').then((snapshot) => {
-//                         let transactions = snapshot.val() || {};
-//                         const transactionCount = Object.keys(transactions).length;
-//                         if (transactionCount >= 5) {
-//                         // Remove the oldest transaction
-//                         const oldestTransactionKey = Object.keys(transactions)[0];
-//                         delete transactions[oldestTransactionKey];
-//                         }
-//                         // Add the new transaction
-//                         transactions[transaction.tId] = transaction;
-//                         userRef.set(transactions);
-//                     }).catch((error) => {
-//                         console.error('Error adding transaction:', error);
-//                         throw error; // Re-throw
-//                     }).then(() => {
-                    
-//                     alert('Order placed! Total amount: ₹' + total);
-//                 // addTransactionToUser(userDetails.id, transaction);
-//                 total = 0;
-//                 orderList.empty();
-//                 totalPrice.text('$0');
-//                 orderSummary.removeClass('show');
-//                 toggleSummary.removeClass('show');
-//                 localStorage.removeItem('storeDetails');
-//                 window.location.replace('employee_screen.html');
-//                     });
-//                 });
-//             }).catch(error => {
-//                 console.error('Error updating user balance: ', error);
-//                 alert('Failed to place order. Please try again.');
-//             });
-//         })
-//         .catch(error => {
-//             console.error('Error adding transaction: ', error);
-//             alert('Failed to place order. Please try again.');
-//         });
-
-// const updates = {};
-
-// // Update the transaction
-// updates[`transactions/${storeDetails.id}/${transactionId}`] = transaction;
-
-// // Update the user's details
-// const newBalance = userDetails.balance - total;
-// const newCoinsUtil = userDetails.coinsUtil + total;
-// const orderStore = storeDetails.id;
-// const userId = userDetails.id;
-// const location = userDetails.location;
-// const password = userDetails.password;
-// const status = userDetails.status;
-// const userName = userDetails.userName;
-// const userType = userDetails.userType;
-
-// updates[`userDetails/${userDetails.id}`] = {
-//     balance: newBalance,
-//     coinsUtil: newCoinsUtil,
-//     id: userId,
-//     isOrderPending: true,
-//     lastTranDate: currentDate,
-//     message: "Order is pending...",
-//     orderStore: orderStore,
-//     pendingTransId: transactionId,
-//     location: location,
-//     password: password,
-//     status: status,
-//     userName: userName,
-//     userType: userType
-// };
-
-// // Update the store's order counter
-// updates[`stores/${storeDetails.id}/orderCounter`] = orderNum;
-
-// // Perform the multi-location update
-// database.ref().update(updates)
-//     .then(() => {
-//         // Update local storage
-//         localStorage.setItem('userDetails', JSON.stringify(userDetails));
-
-//         alert('Order placed! Total amount: ₹' + total);
-//         total = 0;
-//         orderList.empty();
-//         totalPrice.text('$0');
-//         orderSummary.removeClass('show');
-//         toggleSummary.removeClass('show');
-//         localStorage.removeItem('storeDetails');
-//         window.location.replace('employee_screen.html');
-//     })
-//     .catch((error) => {
-//         console.error('Error:', error);
-//         alert('Failed to place order. Please try again.');
-//     });
-
-
-// const transactionRef = database.ref(`transactions/${storeDetails.id}/${transactionId}`);
-
-// transactionRef.set(transaction)
-//   .then(() => {
-//     return database.ref(`userDetails/${userDetails.id}`).transaction((userData) => {
-//       if (!userData) {
-//         // Initialize userData with default values
-//         userData = {
-//           balance: 0,
-//           isOrderPending: false,
-//           lastTranDate: null,
-//           pendingTransId: null,
-//           orderStore: null,
-//           message: "",
-//           coinsUtil: 0,
-//           transactions: {}
-//         };
-//       }
-
-//       // Update user's details
-//       const newBalance = userData.balance - total;
-//       const newCoinsUtil = userData.coinsUtil + total;
-//       const orderStore = storeDetails.id;
-//       const currentDate = new Date().toISOString();
-
-//       userData.balance = newBalance;
-//       userData.isOrderPending = true;
-//       userData.lastTranDate = currentDate;
-//       userData.pendingTransId = transactionId;
-//       userData.orderStore = orderStore;
-//       userData.message = "Order is pending...";
-//       userData.coinsUtil = newCoinsUtil;
-
-//       // Update the user's balance in the local storage
-//       userDetails.lastTranDate = currentDate;
-//       userDetails.balance = newBalance;
-//       userDetails.isOrderPending = true;
-//       userDetails.orderStore = orderStore;
-//       userDetails.pendingTransId = transactionId;
-//       userDetails.message = "Order is pending...";
-//       userDetails.coinsUtil = newCoinsUtil;
-//       localStorage.setItem('userDetails', JSON.stringify(userDetails));
-
-//       // Update the transaction history, keeping only the last 5 transactions
-//       const transactions = userData.transactions || {};
-//       const transactionKeys = Object.keys(transactions);
-//       if (transactionKeys.length >= 5) {
-//         // Remove the oldest transactions
-//         const oldestTransactionKeys = transactionKeys.slice(0, transactionKeys.length - 4);
-//         oldestTransactionKeys.forEach(key => {
-//           delete transactions[key];
-//         });
-//       }
-
-//       transactions[transactionId] = transaction;
-//       userData.transactions = transactions;
-
-//       // Return the updated userData to commit the transaction
-//       return userData;
-//     });
-//   })
-//   .then((result) => {
-//     if (result.committed) {
-//       const storeRef = database.ref(`stores/${storeDetails.id}`);
-//       return storeRef.update({
-//         orderCounter: orderNum
-//       });
-//     } else {
-//       throw new Error('User data not found');
-//     }
-//   })
-//   .then(() => {
-//     alert('Order placed! Total amount: ₹' + total);
-//     total = 0;
-//     orderList.empty();
-//     totalPrice.text('$0');
-//     orderSummary.removeClass('show');
-//     toggleSummary.removeClass('show');
-//     localStorage.removeItem('storeDetails');
-//     window.location.replace('employee_screen.html');
-//   })
-//   .catch(error => {
-//     console.error('Error placing order:', error);
-//     alert('Failed to place order. Please try again.');
-//   });
-
 const transactionRef = database.ref(`transactions/${storeDetails.id}/${transactionId}`);
 
 let userDataToUpdate;
@@ -883,6 +730,8 @@ database.ref(`userDetails/${userDetails.id}`).transaction((userData) => {
         // Redirect to the login page
         window.location.replace('employee_screen.html');
         });
+
+
 </script>
 </body>
 </html>

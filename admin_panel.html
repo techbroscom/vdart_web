@@ -704,7 +704,7 @@ function showEmployeeData() {
         employeeTableHtml += '<tbody>';
 
         for (var userId in userDetails) {
-            if (userDetails[userId].userType === 'Employee') {
+            if (userDetails[userId].userType === 'Employee' || userDetails[userId].userType ==="Intern") {
                 employeeTableHtml += '<tr>';
                 employeeTableHtml += '<td>' + userDetails[userId].id + '</td>';
                 employeeTableHtml += '<td>' + userDetails[userId].userName + '</td>';
@@ -1153,7 +1153,7 @@ userDetailsRef.once('value', function(snapshot) {
     snapshot.forEach(function(childSnapshot) {
         var childKey = childSnapshot.key;
         var childData = childSnapshot.val();
-        if (childData.location === location && childData.status.toLowerCase() == 'active' && childData.userType.toLowerCase() == 'employee') {
+        if (childData.location === location && childData.status.toLowerCase() == 'active' && (childData.userType.toLowerCase() == 'employee' || childData.userType.toLowerCase() == 'intern')) {
             var newBalance = addWithExistingBalance ? (childData.balance + coins) : coins;
             
             // Create transaction object

@@ -506,6 +506,70 @@ ul {
       const loadingDiv = document.getElementById('loading');
     loadingDiv.style.display = 'block';
 
+    // Function to log out the user
+    const logoutUser = () => {
+        // Show alert for suspicious activity
+        alert("⚠️ Suspicious activity detected! Dates do not match. Logging you out for security reasons.");
+        
+        // Clear user details from localStorage
+        localStorage.removeItem('userDetails');
+        
+        // Redirect to the login page
+        window.location.replace('index.html');
+    };
+
+    // Function to check date mismatch
+    const checkDateMismatch = () => {
+        try {
+            // Get the current device date
+            const deviceDate = new Date();
+
+            // Reference to a temporary node in the database to store server timestamp
+            const serverTimeRef = db.ref('temp/serverTime');
+
+            // Write the server timestamp to the database
+            serverTimeRef.set(firebase.database.ServerValue.TIMESTAMP, (error) => {
+                if (error) {
+                    console.error('❌ Failed to write server timestamp:', error);
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                // Fetch the server timestamp after writing it
+                serverTimeRef.once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const serverDate = new Date(snapshot.val()); // Firebase timestamp to JS Date
+
+                        // Compare dates
+                        console.log("Device Date:", deviceDate);
+                        console.log("Server Date:", serverDate);
+
+                        if (deviceDate.toDateString() === serverDate.toDateString()) {
+                            console.log("✅ Dates match!");
+                        } else {
+                            console.error("❌ Date mismatch! Device date does not match server date.");
+                            logoutUser(); // Trigger logout on mismatch
+                        }
+
+                        // Optional: Check exact time difference
+                        const timeDiffMs = Math.abs(deviceDate - serverDate);
+                        console.log(`⏱ Time difference: ${timeDiffMs} ms`);
+                    } else {
+                        console.error("❌ Failed to fetch server date from Firebase!");
+                    }
+                    // Hide loading spinner
+                    loadingDiv.style.display = 'none';
+                });
+            });
+        } catch (error) {
+            console.error("❌ An error occurred:", error);
+            loadingDiv.style.display = 'none';
+        }
+    };
+
+    // Call the function to check date mismatch
+    checkDateMismatch();
+
       
 
       // Logout button event listener

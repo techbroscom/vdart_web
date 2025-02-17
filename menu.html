@@ -848,5 +848,11 @@ function showVegModeOverlay() {
 
 
 </script>
+    <!-- Restrict Desktop for users -->
+<script>
+    if (window.innerWidth > 768) { // Adjust width as needed
+        document.body.innerHTML = "<h2>Mobile access only</h2>";
+    }
+  </script>
 </body>
 </html>

@@ -524,31 +524,23 @@ let dateMismatch = false;
 // Function to check date mismatch
 const checkDateMismatch = async () => {
     try {
-        const deviceDate = new Date();
         const serverTimeRef = db.ref('temp/serverTime');
-
-        // Write server timestamp
         await serverTimeRef.set(firebase.database.ServerValue.TIMESTAMP);
-
-        // Fetch the server timestamp
         const snapshot = await serverTimeRef.once('value');
-        if (snapshot.exists()) {
-            const serverDate = new Date(snapshot.val());
+        
+        const serverDate = new Date(snapshot.val());
+        const deviceDate = new Date();
 
-            console.log("Device Date:", deviceDate);
-            console.log("Server Date:", serverDate);
-
-            if (deviceDate.toDateString() !== serverDate.toDateString()) {
-                console.error("❌ Date mismatch detected!");
-                dateMismatch = true;
-            }
-        } else {
-            console.error("❌ Failed to fetch server date!");
+        if (deviceDate.toDateString() !== serverDate.toDateString()) {
+            console.error("⛔ Date mismatch detected");
+            logoutUser();
+            return false; // Stop execution
         }
+        return true; // Proceed
     } catch (error) {
-        console.error("❌ Error during date check:", error);
-    } finally {
-        loadingDiv.style.display = 'none';
+        console.error("❌ Date check failed:", error);
+        logoutUser();
+        return false;
     }
 };
 
@@ -566,10 +558,7 @@ logoutButton.addEventListener('click', () => {
 (async () => {
     // First check dates before ANY other code runs
     const dateValid = await checkDateMismatch();
-    if (!dateValid) {
-        logoutUser();
-        return
-    }; // Stop everything if dates mismatch
+    if (!dateValid) return; // Stop everything if dates mismatch
 
       // Display user details
 const userDetails = JSON.parse(localStorage.getItem('userDetails'));

@@ -617,192 +617,190 @@ const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
     });
 };
 
-
-        $('.btn-success').click(function() {
-
-            $('.btn-success').prop('disabled', true);
-            
-            checkDateMismatch().then((isDateMismatch) => {
+$('.btn-success').click(function() {
+    $('.btn-success').prop('disabled', true);
+    
+    checkDateMismatch().then((isDateMismatch) => {
         if (isDateMismatch) {
             alert("⚠️ Suspicious activity detected! Dates do not match. Logging you out for security reasons.");
-            
-            // Clear user details and log out
             localStorage.removeItem('userDetails');
             window.location.replace('index.html');
-            return; // Stop further execution
+            return;
         }
 
-            // Check if there is enough balance
-            if (total > userDetails.balance) {
-                alert('Insufficient balance. Please add funds to your account.');
-                return;
-            }
+        // Check if there is enough balance
+        if (total > userDetails.balance) {
+            alert('Insufficient balance. Please add funds to your account.');
+            $('.btn-success').prop('disabled', false);
+            return;
+        }
 
-            if (userDetails.coinsUtil + total > config.coinsLimit){
-                alert('Daily Limit exceeds, Please proceed with less amount');
-                return;
-            }
+        if (userDetails.coinsUtil + total > config.coinsLimit) {
+            alert('Daily limit exceeded. Please proceed with a smaller amount.');
+            $('.btn-success').prop('disabled', false);
+            return;
+        }
 
-            const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
+        const storeDetails = JSON.parse(localStorage.getItem('storeDetails'));
+        const transactionId = generateTransactionId();
+        const currentDate = new Date();
+        
+        // Format date in one operation
+        const formattedDate = formatDate(currentDate);
+        const orderNum = storeDetails.orderCounter + 1;
+        
+        // Prepare transaction object with items array
+        const transaction = prepareTransactionObject(
+            transactionId, 
+            total, 
+            userDetails, 
+            storeDetails, 
+            formattedDate, 
+            orderNum
+        );
 
-            // Generate a transaction ID
-            const transactionId = generateTransactionId();
-            const currentDate = new Date();
+        // Collect items from order list
+        $('#order-list li').each(function() {
+            const itemText = $(this).find('div:nth-child(1)').text().trim();
+            const itemName = itemText.split(' Nos: ')[0];
+            const quantity = parseInt($(this).find('div:nth-child(2)').text().split(': ')[1]);
+            const priceText = $(this).find('div:nth-child(3)').text();
+            const priceMatch = priceText.match(/₹ ([0-9.]+)/);
 
-            const day = String(currentDate.getDate()).padStart(2, '0');
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const year = currentDate.getFullYear();
-
-            const hours = String(currentDate.getHours()).padStart(2, '0');
-            const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-            const seconds = String(currentDate.getSeconds()).padStart(2, '0');
-
-            const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-            const orderNum = storeDetails.orderCounter + 1;
-            const transaction = {
-                items: [],
-                tCoins: total,
-                tFrom: userDetails.id,
-                tFromName: userDetails.userName,
-                tUserLoc: userDetails.location,
-                tTo: storeDetails.id, // Assuming this is the store ID or some identifier
-                tToName: storeDetails.name, // Assuming this is the store name
-                tId: transactionId, // Generating a unique ID with a timestamp
-                tType: 'order', // Assuming this is the type of transaction (e.g., 'order', 'refund', etc.)
-                tStatus: 'Pending',
-                tDate: formattedDate,
-                tOrderNum: userDetails.id+'-'+orderNum
-            };
-
-                $('#order-list li').each(function() {
-                // const itemName = $(this).find('div:nth-child(1)').text();
-                const itemText = $(this).find('div:nth-child(1)').text().trim();
-                const itemName = itemText.split(' Nos: ')[0];
-                const quantity = parseInt($(this).find('div:nth-child(2)').text().split(': ')[1]);
-                const priceText = $(this).find('div:nth-child(3)').text();
-                // const priceMatch = priceText.match(/Price: \$([0-9.]+)/);
-                const priceMatch = priceText.match(/₹ ([0-9.]+)/);
-
-                if (priceMatch && priceMatch.length > 1) {
-                    const price = parseFloat(priceMatch[1]);
-                    if (!isNaN(price)) {
-                        const item = {
-                            name: itemName,
-                            quantity: quantity,
-                            price: price
-                        };
-                        transaction.items.push(item);
-                    } else {
-                        console.error('Invalid price for item: ' + itemName);
-                    }
-                } else {
-                    console.error('Price not found for item: ' + itemName);
+            if (priceMatch && priceMatch.length > 1) {
+                const price = parseFloat(priceMatch[1]);
+                if (!isNaN(price)) {
+                    transaction.items.push({
+                        name: itemName,
+                        quantity: quantity,
+                        price: price
+                    });
                 }
-            });
-
-            const transactionRef = database.ref(`transactions/${storeDetails.id}/${transactionId}`);
-
-            let userDataToUpdate;
-            let storeDataToUpdate;
-
-            // First, update user's balance and details
-            database.ref(`userDetails/${userDetails.id}`).transaction((userData) => {
-            if (!userData) {
-                // Initialize userData with default values
-                userData = {
-                balance: 0,
-                isOrderPending: false,
-                lastTranDate: null,
-                pendingTransId: null,
-                orderStore: null,
-                message: "",
-                coinsUtil: 0,
-                transactions: {}
-                };
             }
+        });
 
-            // Update user's details
-            const newBalance = userData.balance - total;
-            const newCoinsUtil = userData.coinsUtil + total;
-            const orderStore = storeDetails.id;
-            const currentDate = new Date().toISOString();
-
-            userData.balance = newBalance;
-            userData.isOrderPending = true;
-            userData.lastTranDate = currentDate;
-            userData.pendingTransId = transactionId;
-            userData.orderStore = orderStore;
-            userData.message = "Order is pending...";
-            userData.coinsUtil = newCoinsUtil;
-
-            // Update the user's balance in the local storage
-            userDetails.lastTranDate = currentDate;
-            userDetails.balance = newBalance;
-            userDetails.isOrderPending = true;
-            userDetails.orderStore = orderStore;
-            userDetails.pendingTransId = transactionId;
-            userDetails.message = "Order is pending...";
-            userDetails.coinsUtil = newCoinsUtil;
-            localStorage.setItem('userDetails', JSON.stringify(userDetails));
-
-            // Update the transaction history, keeping only the last 5 transactions
-            const transactions = userData.transactions || {};
-            const transactionKeys = Object.keys(transactions);
-            if (transactionKeys.length >= 5) {
-                // Remove the oldest transactions
-                const oldestTransactionKeys = transactionKeys.slice(0, transactionKeys.length - 4);
-                oldestTransactionKeys.forEach(key => {
-                delete transactions[key];
-                });
-            }
-
-            transactions[transactionId] = transaction;
-            userData.transactions = transactions;
-
-            // Save the updated user data
-            userDataToUpdate = userData;
-
-            // Return the updated userData to commit the transaction
-            return userData;
-            })
-            .then((result) => {
-            if (result.committed) {
-                // Second, update the transaction in the store's transactions
-                return transactionRef.set(transaction);
-            } else {
-                throw new Error('User data not found');
-            }
-            })
+        // Start a multi-path update operation
+        const updates = {};
+        
+        // Update user data
+        const newBalance = userDetails.balance - total;
+        const newCoinsUtil = userDetails.coinsUtil + total;
+        const isoDate = currentDate.toISOString();
+        
+        // Prepare user updates path
+        updates[`userDetails/${userDetails.id}/balance`] = newBalance;
+        updates[`userDetails/${userDetails.id}/isOrderPending`] = true;
+        updates[`userDetails/${userDetails.id}/lastTranDate`] = isoDate;
+        updates[`userDetails/${userDetails.id}/pendingTransId`] = transactionId;
+        updates[`userDetails/${userDetails.id}/orderStore`] = storeDetails.id;
+        updates[`userDetails/${userDetails.id}/message`] = "Order is pending...";
+        updates[`userDetails/${userDetails.id}/coinsUtil`] = newCoinsUtil;
+        
+        // Add transaction to user's transaction history
+        updates[`userDetails/${userDetails.id}/transactions/${transactionId}`] = transaction;
+        
+        // Store the transaction in the main transactions path
+        updates[`transactions/${storeDetails.id}/${transactionId}`] = transaction;
+        
+        // Update store's orderCounter
+        updates[`stores/${storeDetails.id}/orderCounter`] = orderNum;
+        
+        // Execute all updates in a single operation
+        firebase.database().ref().update(updates)
             .then(() => {
-            // Third, update the store's orderCounter
-            const storeRef = database.ref(`stores/${storeDetails.id}`);
-            return storeRef.update({
-                orderCounter: orderNum
-            });
-            })
-            .then(() => {
-            // Final steps
-            alert('Order placed! Total amount: ₹' + total);
-            total = 0;
-            orderList.empty();
-            totalPrice.text('$0');
-            orderSummary.removeClass('show');
-            toggleSummary.removeClass('show');
-            localStorage.removeItem('storeDetails');
-            window.location.replace('employee_screen.html');
+                // Update local storage after successful database update
+                userDetails.lastTranDate = isoDate;
+                userDetails.balance = newBalance;
+                userDetails.isOrderPending = true;
+                userDetails.orderStore = storeDetails.id;
+                userDetails.pendingTransId = transactionId;
+                userDetails.message = "Order is pending...";
+                userDetails.coinsUtil = newCoinsUtil;
+                localStorage.setItem('userDetails', JSON.stringify(userDetails));
+                
+                // Clean up and navigate away
+                alert('Order placed! Total amount: ₹' + total);
+                total = 0;
+                orderList.empty();
+                totalPrice.text('₹0');
+                orderSummary.removeClass('show');
+                toggleSummary.removeClass('show');
+                localStorage.removeItem('storeDetails');
+                window.location.replace('employee_screen.html');
             })
             .catch(error => {
-            console.error('Error placing order:', error);
-            alert('Failed to place order. Please try again.');
+                console.error('Error placing order:', error);
+                alert('Failed to place order. Please try again.');
+                $('.btn-success').prop('disabled', false);
             });
-
-        }).catch((error) => {
+    }).catch((error) => {
         console.error("❌ An error occurred during the date check:", error);
         alert("An unexpected error occurred. Please try again.");
         $('.btn-success').prop('disabled', false);
     });
+});
 
-        });
+// Helper function to format date
+function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
+
+// Helper function to prepare the transaction object
+function prepareTransactionObject(transactionId, total, userDetails, storeDetails, formattedDate, orderNum) {
+    return {
+        items: [],
+        tCoins: total,
+        tFrom: userDetails.id,
+        tFromName: userDetails.userName,
+        tUserLoc: userDetails.location,
+        tTo: storeDetails.id,
+        tToName: storeDetails.name,
+        tId: transactionId,
+        tType: 'order',
+        tStatus: 'Pending',
+        tDate: formattedDate,
+        tOrderNum: userDetails.id + '-' + orderNum
+    };
+}
+
+// Also optimize the transaction history management to keep only the last 5 transactions
+// This function would be called periodically or during user login
+function cleanupOldTransactions(userId) {
+    const userTransactionsRef = firebase.database().ref(`userDetails/${userId}/transactions`);
+    
+    userTransactionsRef.once('value')
+        .then(snapshot => {
+            if (snapshot.exists()) {
+                const transactions = snapshot.val();
+                const transactionKeys = Object.keys(transactions);
+                
+                if (transactionKeys.length > 5) {
+                    // Sort by date (assuming the transactionId is timestamp-based)
+                    transactionKeys.sort();
+                    
+                    // Get keys to remove (all except the 5 most recent)
+                    const keysToRemove = transactionKeys.slice(0, transactionKeys.length - 5);
+                    
+                    // Create a multi-path update to remove old transactions
+                    const updates = {};
+                    keysToRemove.forEach(key => {
+                        updates[`userDetails/${userId}/transactions/${key}`] = null;
+                    });
+                    
+                    // Execute the removals in a single operation
+                    return firebase.database().ref().update(updates);
+                }
+            }
+        })
+        .catch(error => console.error('Error cleaning up old transactions:', error));
+}
 
 
     $('.close-summary').click(function() {

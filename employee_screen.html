@@ -541,7 +541,6 @@ const checkDateMismatch = async () => {
             if (deviceDate.toDateString() !== serverDate.toDateString()) {
                 console.error("❌ Date mismatch detected!");
                 dateMismatch = true;
-                logoutUser();
             }
         } else {
             console.error("❌ Failed to fetch server date!");
@@ -559,6 +558,7 @@ const initApp = async () => {
 
     // Stop further execution if date mismatch is detected
     if (dateMismatch) {
+        logoutUser();
         throw new Error("Execution stopped due to date mismatch.");
     }
 

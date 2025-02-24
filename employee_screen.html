@@ -549,6 +549,7 @@ ul {
                         } else {
                             console.error("❌ Date mismatch! Device date does not match server date.");
                             logoutUser(); // Trigger logout on mismatch
+                            return;
                         }
 
                         // Optional: Check exact time difference

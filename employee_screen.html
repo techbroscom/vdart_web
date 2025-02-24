@@ -553,14 +553,20 @@ const checkDateMismatch = async () => {
     }
 };
 
-// Wait for date check before continuing
-await checkDateMismatch();
+// Wrap main logic inside an async function
+const initApp = async () => {
+    await checkDateMismatch();
 
-// Stop further execution if date mismatch is detected
-if (dateMismatch) {
-    throw new Error("Execution stopped due to date mismatch.");
-}
+    // Stop further execution if date mismatch is detected
+    if (dateMismatch) {
+        throw new Error("Execution stopped due to date mismatch.");
+    }
 
+    console.log("✅ Proceeding with normal execution.");
+};
+
+// Call the init function
+initApp();
 
       // Logout button event listener
 const logoutButton = document.getElementById('logoutButton');

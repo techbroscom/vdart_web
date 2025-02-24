@@ -552,22 +552,6 @@ const checkDateMismatch = async () => {
     }
 };
 
-// Wrap main logic inside an async function
-const initApp = async () => {
-    await checkDateMismatch();
-
-    // Stop further execution if date mismatch is detected
-    if (dateMismatch) {
-        logoutUser();
-        throw new Error("Execution stopped due to date mismatch.");
-    }
-
-    console.log("✅ Proceeding with normal execution.");
-};
-
-// Call the init function
-initApp();
-
       // Logout button event listener
 const logoutButton = document.getElementById('logoutButton');
 logoutButton.addEventListener('click', () => {
@@ -579,12 +563,18 @@ logoutButton.addEventListener('click', () => {
     }
 });
 
+(async () => {
+    // First check dates before ANY other code runs
+    const dateValid = await checkDateMismatch();
+    if (!dateValid) return; // Stop everything if dates mismatch
+
       // Display user details
 const userDetails = JSON.parse(localStorage.getItem('userDetails'));
 if (!userDetails) {
     console.log('User details not found');
     window.location.replace('index.html');
 } else {
+
     document.getElementById('userName').innerText = userDetails.userName;
     document.getElementById('userBalance').innerText = userDetails.balance;
     document.getElementById('userMessage').innerText = userDetails.message;
@@ -694,6 +684,7 @@ pendingTransactionItems.innerHTML += `
     showStoreUi();
     }  
 }
+})();
 
 function showStoreUi() {
     document.getElementById('pendingTransaction').style.display = 'none';
@@ -819,6 +810,7 @@ function createCardElement(store) {
 
 
 var coinsLimit;
+const userDetails = JSON.parse(localStorage.getItem('userDetails'));
 
 var configRef = db.ref('config');
   configRef.once('value', function(snapshot) {

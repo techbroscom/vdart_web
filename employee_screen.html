@@ -566,7 +566,10 @@ logoutButton.addEventListener('click', () => {
 (async () => {
     // First check dates before ANY other code runs
     const dateValid = await checkDateMismatch();
-    if (!dateValid) return; // Stop everything if dates mismatch
+    if (!dateValid) {
+        logoutUser();
+        return
+    }; // Stop everything if dates mismatch
 
       // Display user details
 const userDetails = JSON.parse(localStorage.getItem('userDetails'));

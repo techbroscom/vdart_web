@@ -605,7 +605,7 @@ if (!userDetails) {
     if (lastTranDate.toDateString() === currentDate.toDateString()) {
         console.log('lastTranDate is the current date.');
     } 
-    else if(lastTranDate.toDateString() != currentDate.toDateString() && userDetails.coinsUtil!=0){
+    else if(lastTranDate.toDateString() != currentDate.toDateString() && userDetails.coinsUtil!=0 && !dateMismatch){
         userDetails.coinsUtil = 0;
 
         db.ref('userDetails/' + userDetails.id).update({

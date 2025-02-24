@@ -518,58 +518,61 @@ ul {
         window.location.replace('index.html');
     };
 
-    // Function to check date mismatch
-    const checkDateMismatch = () => {
-        try {
-            // Get the current device date
-            const deviceDate = new Date();
+    // Global flag to track date mismatch
+let dateMismatch = false;
 
-            // Reference to a temporary node in the database to store server timestamp
-            const serverTimeRef = db.ref('temp/serverTime');
+const checkDateMismatch = () => {
+    try {
+        // Get the current device date
+        const deviceDate = new Date();
 
-            // Write the server timestamp to the database
-            serverTimeRef.set(firebase.database.ServerValue.TIMESTAMP, (error) => {
-                if (error) {
-                    console.error('❌ Failed to write server timestamp:', error);
-                    loadingDiv.style.display = 'none';
-                    return;
-                }
+        // Reference to a temporary node in the database to store server timestamp
+        const serverTimeRef = db.ref('temp/serverTime');
 
-                // Fetch the server timestamp after writing it
-                serverTimeRef.once('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        const serverDate = new Date(snapshot.val()); // Firebase timestamp to JS Date
+        // Write the server timestamp to the database
+        serverTimeRef.set(firebase.database.ServerValue.TIMESTAMP, (error) => {
+            if (error) {
+                console.error('❌ Failed to write server timestamp:', error);
+                loadingDiv.style.display = 'none';
+                return;
+            }
 
-                        // Compare dates
-                        console.log("Device Date:", deviceDate);
-                        console.log("Server Date:", serverDate);
+            // Fetch the server timestamp after writing it
+            serverTimeRef.once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const serverDate = new Date(snapshot.val()); // Convert Firebase timestamp to JS Date
 
-                        if (deviceDate.toDateString() === serverDate.toDateString()) {
-                            console.log("✅ Dates match!");
-                        } else {
-                            console.error("❌ Date mismatch! Device date does not match server date.");
-                            logoutUser(); // Trigger logout on mismatch
-                            return;
-                        }
+                    // Compare dates
+                    console.log("Device Date:", deviceDate);
+                    console.log("Server Date:", serverDate);
 
-                        // Optional: Check exact time difference
-                        const timeDiffMs = Math.abs(deviceDate - serverDate);
-                        console.log(`⏱ Time difference: ${timeDiffMs} ms`);
-                    } else {
-                        console.error("❌ Failed to fetch server date from Firebase!");
+                    if (deviceDate.toDateString() !== serverDate.toDateString()) {
+                        console.error("❌ Date mismatch! Device date does not match server date.");
+                        dateMismatch = true;
+                        logoutUser(); // Trigger logout on mismatch
+                        return;
                     }
-                    // Hide loading spinner
-                    loadingDiv.style.display = 'none';
-                });
-            });
-        } catch (error) {
-            console.error("❌ An error occurred:", error);
-            loadingDiv.style.display = 'none';
-        }
-    };
 
-    // Call the function to check date mismatch
-    checkDateMismatch();
+                    console.log("✅ Dates match!");
+                } else {
+                    console.error("❌ Failed to fetch server date from Firebase!");
+                }
+                loadingDiv.style.display = 'none';
+            });
+        });
+    } catch (error) {
+        console.error("❌ An error occurred:", error);
+        loadingDiv.style.display = 'none';
+    }
+};
+
+// Call date mismatch check before proceeding with other operations
+checkDateMismatch();
+
+// Stop further execution if date mismatch is detected
+if (dateMismatch) {
+    throw new Error("Execution stopped due to date mismatch.");
+}
 
       
 
@@ -699,93 +702,6 @@ pendingTransactionItems.innerHTML += `
     showStoreUi();
     }  
 }
-
-// function showStoreUi(){
-//     document.getElementById('pendingTransaction').style.display = 'none';
-//     document.getElementById('loading').style.display = 'none';
-
-//     // If there is no pending order, display the store list
-
-//     const storesListRef = db.ref('stores');
-//     storesListRef.on('value', snapshot => {
-//     const stores = snapshot.val();
-//     const storesList = document.getElementById('storesList');
-//     const noStoresMessage = document.getElementById('noStoresMessage');
-//     storesList.innerHTML = ''; // Clear previous list
-//     if (!stores) {
-//         noStoresMessage.style.display = 'block'; // Show message
-//         console.log('No stores found in the database');
-//         return;
-//     }
-//     document.querySelector('.store-list').style.display = 'block'; // Show the store list
-//     let storesFound = false;
-//     for (let storeKey in stores) {
-//         const store = stores[storeKey];
-//         if(['vd-mp', 'vd-mp-day', 'vd-mp-vdss'].includes(userDetails.location.toLowerCase()) && store.location.toLowerCase() === 'vd-mp'){
-//             const storeItem = document.createElement('div');
-//             storeItem.className = 'card mb-3';
-//             storeItem.style.cursor = 'pointer';
-//             storeItem.innerHTML = `
-//             <div class="card-body">
-//                 <div class="row">
-//                     <div class="col-2">
-//                         <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
-//                     </div>
-//                     <div class="col-10">
-//                         <h5 class="card-title">${store.name}</h5>
-//                         <p class="card-text">${store.location}</p>
-//                     </div>
-//                 </div>
-//             </div>`;
-//             storeItem.addEventListener('click', () => {
-//                 // Store the menu items for the selected store in localStorage
-//                 localStorage.setItem('menuItems', JSON.stringify(store.menu));
-//                 localStorage.setItem('storeDetails', JSON.stringify(store));
-//                 // Navigate to the next page with store details and menu items
-//                 window.location.replace('menu.html');
-//             });
-//             storesList.appendChild(storeItem);
-//             storesFound = true;
-//         } else if (store.location === userDetails.location && (
-//     userDetails.location.toLowerCase() !== 'vd-mp' &&
-//     userDetails.location.toLowerCase() !== 'vd-mp-day' &&
-//     userDetails.location.toLowerCase() !== 'vd-mp-vdss'
-//   )) {
-//             // Display stores from other locations
-//             const storeItem = document.createElement('div');
-//             storeItem.className = 'card mb-3';
-//             storeItem.style.cursor = 'pointer';
-//             storeItem.innerHTML = `
-//             <div class="card-body">
-//                 <div class="row">
-//                     <div class="col-2">
-//                         <div class="d-flex justify-content-center" style="height: 100%;"><i class="bi bi-shop"></i></div>
-//                     </div>
-//                     <div class="col-10">
-//                         <h5 class="card-title">${store.name}</h5>
-//                         <p class="card-text">${store.location}</p>
-//                     </div>
-//                 </div>
-//             </div>`;
-//             storeItem.addEventListener('click', () => {
-//                 // Store the menu items for the selected store in localStorage
-//                 localStorage.setItem('menuItems', JSON.stringify(store.menu));
-//                 localStorage.setItem('storeDetails', JSON.stringify(store));
-//                 // Navigate to the next page with store details and menu items
-//                 window.location.replace('menu.html');
-//             });
-//             storesList.appendChild(storeItem);
-//             storesFound = true;
-//         }
-//     }
-//     if (!storesFound) {
-//         noStoresMessage.style.display = 'block'; // Show message
-//         console.log('No stores found in the database for the user location:', userDetails.location);
-//     }
-// }, error => {
-//     console.error('Error fetching stores:', error);
-// });
-// }
 
 function showStoreUi() {
     document.getElementById('pendingTransaction').style.display = 'none';
@@ -947,138 +863,6 @@ feedbackForm.addEventListener('submit', (event) => {
     });
 });
 
-// function renderTransactions(transactions) {
-//     const transactionItemsElement = document.getElementById('transactionItems');
-//     transactionItemsElement.innerHTML = ''; // Clear previous items
-
-//     if (typeof userDetails.transactions != 'object') {
-//         const noTransactionsElement = document.createElement('div');
-//         noTransactionsElement.classList.add('text-center', 'text-muted');
-//         noTransactionsElement.textContent = 'No transactions found.';
-//         transactionItemsElement.appendChild(noTransactionsElement);
-//     } else {
-//         const keys = Object.keys(transactions).reverse(); // Reverse the order of keys
-
-//         for (const key in transactions) {
-//             if (transactions.hasOwnProperty(key)) {
-//                 const transaction = transactions[key];
-//                 const transactionElement = document.createElement('div');
-//                 transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
-//                 transactionElement.innerHTML = `
-//                     <div class="row">
-//                         <div class="col-md-6">
-//                             <div class="items">
-//                                 <strong>Items:</strong>
-//                                 <ul>
-//                                     ${transaction.items.map(item =>
-//                                         `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
-//                                     ).join('')}
-//                                 </ul>
-//                             </div>
-//                             <div class="total-coins"><strong>Date:</strong> ${transaction.tDate}</div>
-//                         </div>
-//                         <div class="col-md-3">
-//                             <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
-//                         </div>
-//                         <div class="col-md-3">
-//                             <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
-//                         </div>
-//                     </div>
-//                 `;
-//                 transactionItemsElement.appendChild(transactionElement);
-//             }
-//         }
-//     }
-// }
-
-// function renderTransactions(transactions) {
-//     const transactionItemsElement = document.getElementById('transactionItems');
-//     transactionItemsElement.innerHTML = ''; // Clear previous items
-
-//     if (typeof userDetails.transactions != 'object') {
-//         const noTransactionsElement = document.createElement('div');
-//         noTransactionsElement.classList.add('text-center', 'text-muted');
-//         noTransactionsElement.textContent = 'No transactions found.';
-//         transactionItemsElement.appendChild(noTransactionsElement);
-//     } else {
-//         const keys = Object.keys(transactions); // Reverse the order of keys
-
-//         for (const key in transactions) {
-//             if (transactions.hasOwnProperty(key)) {
-//                 const transaction = transactions[key];
-//                 const transactionElement = document.createElement('div');
-//                 transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
-//                 transactionElement.innerHTML = `
-//                     <div class="row">
-//                         <div class="col-md-6">
-//                             <div class="items">
-//                                 <strong>Items:</strong>
-//                                 <ul>
-//                                     ${transaction.items && Array.isArray(transaction.items) ? 
-//                                         transaction.items.map(item =>
-//                                             `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
-//                                         ).join('') : 'No items found'}
-//                                 </ul>
-//                             </div>
-//                             <div class="total-coins"><strong>Date:</strong> ${transaction.tDate}</div>
-//                         </div>
-//                         <div class="col-md-3">
-//                             <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
-//                         </div>
-//                         <div class="col-md-3">
-//                             <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
-//                         </div>
-//                     </div>
-//                 `;
-//                 transactionItemsElement.appendChild(transactionElement);
-//             }
-//         }
-//     }
-// }
-
-// function renderTransactions(transactions) {
-//     const transactionItemsElement = document.getElementById('transactionItems');
-//     transactionItemsElement.innerHTML = ''; // Clear previous items
-
-//     if (typeof userDetails.transactions != 'object') {
-//         const noTransactionsElement = document.createElement('div');
-//         noTransactionsElement.classList.add('text-center', 'text-muted');
-//         noTransactionsElement.textContent = 'No transactions found.';
-//         transactionItemsElement.appendChild(noTransactionsElement);
-//     } else {
-//         const keys = Object.keys(transactions).reverse(); // Reverse the order of keys
-
-//         for (const key of keys) { // Use for...of loop to iterate in reverse
-//             const transaction = transactions[key];
-//             const transactionElement = document.createElement('div');
-//             transactionElement.classList.add('transaction-details', 'border', 'p-3', 'mb-3');
-//             transactionElement.innerHTML = `
-//                 <div class="row">
-//                     <div class="col-md-6">
-//                         <div class="items">
-//                             <strong>Items:</strong>
-//                             <ul>
-//                                 ${transaction.items && Array.isArray(transaction.items) ? 
-//                                     transaction.items.map(item =>
-//                                         `<li>${item.name} (Qty: ${item.quantity}, ₹${item.price.toFixed(2)})</li>`
-//                                     ).join('') : 'No items found'}
-//                             </ul>
-//                         </div>
-//                         <div class="total-coins"><strong>Date:</strong> ${transaction.tDate}</div>
-//                     </div>
-//                     <div class="col-md-3">
-//                         <div class="total-coins"><strong>Total:</strong> ${transaction.tCoins}</div>
-//                     </div>
-//                     <div class="col-md-3">
-//                         <div class="status"><strong>Status:</strong> ${transaction.tStatus}</div>
-//                     </div>
-//                 </div>
-//             `;
-//             transactionItemsElement.appendChild(transactionElement);
-//         }
-//     }
-// }
-
 function renderTransactions(transactions) {
     const transactionItemsElement = document.getElementById('transactionItems');
     transactionItemsElement.innerHTML = ''; // Clear previous items
@@ -1144,21 +928,6 @@ function getStatusClass(status) {
     }
 }
 
-
-
-// // Assuming userDetails is an object containing the user details
-// const userRef = db.ref('userDetails').child(userDetails.id);
-
-// // Listen for changes in user details in Firebase
-// userRef.on('value', (snapshot) => {
-//     const updatedUserDetails = snapshot.val();
-
-//     // Update userDetails in local storage
-//     localStorage.setItem('userDetails', JSON.stringify(updatedUserDetails));
-
-//     // Update the UI
-//     window.location.reload();
-// });
 
 const userRef = db.ref('userDetails').child(userDetails.id);
 

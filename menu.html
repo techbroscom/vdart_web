@@ -430,77 +430,54 @@ $('.increase-quantity').click(function() {
         });
 
 // Initialize total outside the click event handler
-$('.add-to-cart').click(function() {
-    const name = $(this).data('name');
-    const price = parseFloat($(this).data('price'));
-    const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
-    let quantity = parseInt(quantityDisplay.text());
+$('.add-to-cart').click(function () {
+        const name = $(this).data('name');
+        const price = parseFloat($(this).data('price'));
+        const quantityDisplay = $(this).closest('.card-body').find('.quantity-display');
+        let quantity = parseInt(quantityDisplay.text().trim());
 
-    if (!isNaN(price) && !isNaN(quantity)) {
-        // Check if item is already in cart
-        const existingItem = orderList.find(`.item-name:contains('${name}')`).closest('li');
-        if (existingItem.length > 0) {
-            const existingQuantity = parseInt(existingItem.find('.item-quantity').text());
-            const newQuantity = existingQuantity + quantity;
-            const newPrice = price * newQuantity;
-            existingItem.find('.item-quantity').text(newQuantity);
-            existingItem.find('.item-total-price').text(`₹ ${newPrice.toFixed(2)}`);
-            total = total - (price * existingQuantity) + newPrice;
-        } else {
-            total += price * quantity;
-            orderList.append(`
-                <li class="list-group-item border-0">
-                    <div class="row align-items-center">
-                        <div class="col item-name">${name}</div>
-                        <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
-                        <div class="col item-total-price">₹ ${(price * quantity).toFixed(2)}</div>
-                        <div class="col-auto">
-                            <button class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></button>
+        if (!isNaN(price) && !isNaN(quantity) && quantity > 0) {
+            // Find existing item in cart
+            const existingItem = orderList.find('.item-name').filter(function () {
+                return $(this).text().trim() === name;
+            }).closest('li');
+
+            if (existingItem.length > 0) {
+                const existingQuantity = parseInt(existingItem.find('.item-quantity').text());
+                const newQuantity = existingQuantity + quantity;
+                const newPrice = Number((price * newQuantity).toFixed(2));
+                
+                existingItem.find('.item-quantity').text(newQuantity);
+                existingItem.find('.item-total-price').text(`₹ ${newPrice}`);
+                
+                total = total - (price * existingQuantity) + newPrice;
+            } else {
+                const newPrice = Number((price * quantity).toFixed(2));
+                total += newPrice;
+
+                orderList.append(`
+                    <li class="list-group-item border-0">
+                        <div class="row align-items-center">
+                            <div class="col item-name">${name}</div>
+                            <div class="col">Nos: <span class="item-quantity">${quantity}</span></div>
+                            <div class="col item-total-price">₹ ${newPrice}</div>
+                            <div class="col-auto">
+                                <button class="btn btn-danger btn-sm remove-item"><i class="bi bi-trash"></i></button>
+                            </div>
                         </div>
-                    </div>
-                </li>
-            `);
+                    </li>
+                `);
+            }
+
+            // Update total
+            totalPrice.text(`₹ ${total.toFixed(2)}`);
+            orderSummary.addClass('show');
+            toggleSummary.addClass('show');
         }
-        // Update total outside the if-else block
-        totalPrice.text(`₹${total.toFixed(2)}`);
-        orderSummary.addClass('show');
-        toggleSummary.addClass('show');
-    }
-    $('.btn-success').prop('disabled', total <= 0);
-});
+
+        $('.btn-success').prop('disabled', total <= 0);
+    });
 }
-
-
-// function renderMenuItem(menuItem, container) {
-//     const disabledClass = menuItem.disabled ? 'disabled' : '';
-//     const outOfStockMessage = menuItem.disabled ? '<p class="text-danger">Out of Stock</p>' : '';
-//     const menuItemElement = `
-//         <div class="col-md-4">
-//             <div class="card ${disabledClass}">
-//                 <div class="card-body">
-//                     <div class="row">
-//                         <div class="col">
-//                             <h5 class="card-title">${menuItem.name}</h5>
-//                         </div>
-//                         <div class="col-auto ml-auto">
-//                             ${outOfStockMessage}
-//                         </div>
-//                     </div>
-//                     <div class="d-flex justify-content-between align-items-center">
-//                         <p class="card-text mb-0">Price: &#8377;${menuItem.price}</p>
-//                         <div class="quantity-input d-flex align-items-center">
-//                             <button class="btn btn-outline-secondary decrease-quantity">-</button>
-//                             <span class="quantity-display">1</span>
-//                             <button class="btn btn-outline-secondary increase-quantity">+</button>
-//                         </div>
-//                         <button class="btn btn-primary add-to-cart" data-name="${menuItem.name}" data-price="${menuItem.price}" ${menuItem.disabled ? 'disabled' : ''}>Add</button>
-//                     </div>
-//                 </div>
-//             </div>
-//         </div>
-//     `;
-//     container.append(menuItemElement);
-// }
 
 function renderMenuItem(menuItem, container) {
     const disabledClass = menuItem.disabled ? 'disabled' : '';

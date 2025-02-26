@@ -673,8 +673,29 @@ $('.btn-success').click(function() {
         updates[`userDetails/${userDetails.id}/message`] = "Order is pending...";
         updates[`userDetails/${userDetails.id}/coinsUtil`] = newCoinsUtil;
         
-        // Add transaction to user's transaction history
-        updates[`userDetails/${userDetails.id}/transactions/${transactionId}`] = transaction;
+        // Add transaction to user's transaction history    
+        // Handle transaction history - keep only the last 5
+        const transactions = userDetails.transactions || {};            
+                // Get transaction keys and sort them (assuming transactionId is timestamp-based)
+                const transactionKeys = Object.keys(transactions);
+                
+                // If we'll have more than 5 transactions after adding this one,
+                // remove the oldest ones to keep only 5 total (4 existing + 1 new)
+                if (transactionKeys.length >= 5) {
+                    // Sort keys to make sure we remove the oldest
+                    transactionKeys.sort();
+                    
+                    // Calculate how many to remove
+                    const removeCount = transactionKeys.length - 4; // Keep 4 existing + 1 new = 5 total
+                    
+                    // Remove the oldest transactions
+                    transactionKeys.slice(0, removeCount).forEach(key => {
+                        updates[`userDetails/${userDetails.id}/transactions/${key}`] = null;
+                    });
+                }
+                
+                // Add the new transaction
+                updates[`userDetails/${userDetails.id}/transactions/${transactionId}`] = transaction;
         
         // Store the transaction in the main transactions path
         updates[`transactions/${storeDetails.id}/${transactionId}`] = transaction;

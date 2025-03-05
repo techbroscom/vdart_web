@@ -8,8 +8,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- Custom CSS -->
     <style>
+        canvas {
+            max-height: 500px;
+            margin: 20px 0;
+        }
+
+        .tab-content {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .nav-tabs {
+            margin-bottom: 0;
+        }
         body {
             background-color: #f8f9fa;
             margin-bottom: 60px; /* Add margin for the toggle button */
@@ -64,6 +82,40 @@
         }
         .cancel-button:hover {
             background-color: #7c1515;
+        }
+        /* Add this CSS */
+        #chartsModal .modal-body {
+            min-height: 70vh;
+        }
+
+        #chartsModal canvas {
+            max-height: 60vh;
+            min-height: 400px;
+        }
+
+        #viewChartsButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #viewChartsButton i {
+            font-size: 1.5rem;
+        }
+
+        #chartsModal .chart-container {
+            position: relative;
+            height: 60vh;
+            min-height: 400px;
         }
     </style>
 </head>
@@ -129,9 +181,36 @@
             </div>
         </div>
     </div>
+    <!-- Items Sold (Scrollable) -->
+    <div class="row mt-4">
+        <div class="col">
+            <h3>Items Sold Today</h3>
+            <div style="overflow-x: auto; white-space: nowrap; max-width: 100%; border: 1px solid #ddd; padding: 10px;">
+                <ul id="todayItemsSoldList" class="list-group d-flex flex-row" 
+                    style="gap: 10px; list-style: none; padding: 0; min-width: max-content;">
+                    <!-- Items sold quantities will be dynamically added here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col">
+            <h3>Items Sold</h3>
+            <div style="overflow-x: auto; white-space: nowrap; max-width: 100%; border: 1px solid #ddd; padding: 10px;">
+                <ul id="itemsSoldList" class="list-group d-flex flex-row" 
+                    style="gap: 10px; list-style: none; padding: 0; min-width: max-content;">
+                    <!-- Items sold quantities will be dynamically added here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+    <br>
     <div class="row">
         <div class="col">
-            <h3>Transaction History <button id="downloadButton" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button></h3>
+            <h3>Transaction History <button id="downloadButton" style="background: none; border: none; padding: 0;"><img src="assets/icons/excel.png" alt="Excel Icon"></button><!-- Add this button near the download button -->
+                <button id="viewChartsButton" class="btn btn-info ml-2">
+                    <i class="fas fa-chart-bar"></i> View Sales Charts
+                </button></h3>
             <ul id="transactionHistoryList" class="list-group">
                 <!-- Transaction history items will be dynamically added here -->
             </ul>
@@ -140,6 +219,50 @@
     </div>
 
 </div>
+
+<div class="modal fade" id="chartsModal" tabindex="-1" role="dialog" aria-labelledby="chartsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="chartsModalLabel">Sales Analytics</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Move the tabbed charts content here -->
+                <ul class="nav nav-tabs" id="salesTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="all-time-tab" data-toggle="tab" href="#all-time" role="tab">All Time</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="today-tab" data-toggle="tab" href="#today" role="tab">Today</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="all-time" role="tabpanel">
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="today" role="tabpanel">
+                        <div class="chart-container">
+                            <canvas id="todaySalesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add these here -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <!-- Firebase JavaScript SDK and Initialization code -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -336,7 +459,9 @@
             }
         });
 
-
+// Add these variables at the top
+let salesChart = null;
+let todaySalesChart = null;
     // Function to show transaction history
 function showTransactionHistory() {
     const transactionHistoryList = document.getElementById('transactionHistoryList');
@@ -345,6 +470,9 @@ function showTransactionHistory() {
 
     // Fetch transaction history from Firebase
     // Assuming you have fetched the history in a variable called transactionHistory
+    // Initialize items sold object
+    const itemsSold = {};
+    const todayItemsSold = {};  // New object for today's items
 
 // Reference to the transaction history for a specific store ID in the Firebase database
 const transactionHistoryRef = db.ref('transactions').child(storeId);
@@ -379,7 +507,8 @@ transactionHistoryRef.once('value', snapshot => {
 
         Object.values(transactions).reverse().forEach(transaction => {
             if (transaction.tStatus === 'Delivered') {
-            const transactionDateParts = transaction.tDate.split(' ')[0].split('-');
+
+                const transactionDateParts = transaction.tDate.split(' ')[0].split('-');
             const transactionDate = new Date(
                 transactionDateParts[2], // year
                 parseInt(transactionDateParts[1]) - 1, // month (zero-based index)
@@ -389,6 +518,48 @@ transactionHistoryRef.once('value', snapshot => {
                 0, // second
                 0 // millisecond
             );
+
+
+                    // Check if transaction is from today
+                    const isToday = transactionDate >= today;
+
+                // Accumulate items sold
+                // transaction.items.forEach(item => {
+                //         // Normalize item name: trim whitespace, lowercase, and remove extra spaces
+                // const itemName = item.name
+                //     .trim()
+                //     .toLowerCase()
+                //     .replace(/\s+/g, ' '); // Replace multiple spaces with single space
+                
+                // itemsSold[itemName] = (itemsSold[itemName] || 0) + item.quantity;
+                // });
+
+                transaction.items.forEach(item => {
+                        // Normalize item name
+                        const itemName = item.name
+                            .trim()
+                            .toLowerCase()
+                            .replace(/\s+/g, ' ');
+                        
+                        // Update main items sold
+                        itemsSold[itemName] = (itemsSold[itemName] || 0) + item.quantity;
+                        
+                        // Update today's items if applicable
+                        if (isToday) {
+                            todayItemsSold[itemName] = (todayItemsSold[itemName] || 0) + item.quantity;
+                        }
+                    });
+
+            // const transactionDateParts = transaction.tDate.split(' ')[0].split('-');
+            // const transactionDate = new Date(
+            //     transactionDateParts[2], // year
+            //     parseInt(transactionDateParts[1]) - 1, // month (zero-based index)
+            //     transactionDateParts[0], // day
+            //     0, // hour
+            //     0, // minute
+            //     0, // second
+            //     0 // millisecond
+            // );
             tranHistoryList.push({
                 'Tran Id': transaction.tId,
                 'From': transaction.tFromName,
@@ -436,12 +607,105 @@ transactionHistoryRef.once('value', snapshot => {
             transactionHistoryList.appendChild(card);
 }
         });
+        // Display items sold after processing all transactions
+        const itemsSoldList = document.getElementById('itemsSoldList');
+            itemsSoldList.innerHTML = '';
+            
+            const sortedItems = Object.entries(itemsSold)
+                // .sort(([,a], [,b]) => b - a)
+                .map(([name, quantity]) => ({
+                    // Format name with first letter capitalized
+                    name: name.replace(/\b\w/g, l => l.toUpperCase()),
+                    quantity
+                }));
+
+                sortedItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex flex-column align-items-center text-center p-3 shadow-sm rounded';
+
+                    li.innerHTML = `
+                        <strong class="fs-5">${item.name}</strong>
+                        <span class="badge bg-primary text-white rounded-pill px-3 py-2 fs-6 mt-2">${item.quantity}</span>
+                    `;
+
+                    itemsSoldList.appendChild(li);
+                });
+
+
+        // Display today's items sold
+        const todayItemsList = document.getElementById('todayItemsSoldList');
+            todayItemsList.innerHTML = '';
+            
+            const sortedTodayItems = Object.entries(todayItemsSold)
+                // .sort(([,a], [,b]) => b - a)
+                .map(([name, quantity]) => ({
+                    name: name.replace(/\b\w/g, l => l.toUpperCase()),
+                    quantity
+                }));
+
+                sortedTodayItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex flex-column align-items-center text-center p-3 shadow-sm rounded';
+
+                    li.innerHTML = `
+                        <strong class="fs-5">${item.name}</strong>
+                        <span class="badge bg-success text-white rounded-pill px-3 py-2 fs-6 mt-2">${item.quantity}</span>
+                    `;
+
+                    todayItemsList.appendChild(li);
+                });
+
 
         // Display yesterday's and today's totals
         document.getElementById('yesterdayTotal').textContent = yesterdayTotal;
         document.getElementById('todayTotal').textContent = todayTotal;
         document.getElementById('weekTotal').textContent = lastWeekTotal;
         document.getElementById('currentWeekTotal').textContent = currentWeekTotal;
+
+        // Prepare chart data correctly
+        // const sortedItems = Object.entries(itemsSold)
+        //         .sort(([,a], [,b]) => b - a)
+        //         .slice(0, 10) // Show top 10 items
+        //         .map(([name, quantity]) => ({
+        //             name: name.replace(/\b\w/g, l => l.toUpperCase()),
+        //             quantity
+        //         }));
+
+        //     const sortedTodayItems = Object.entries(todayItemsSold)
+        //         .sort(([,a], [,b]) => b - a)
+        //         .slice(0, 10) // Show top 10 items
+        //         .map(([name, quantity]) => ({
+        //             name: name.replace(/\b\w/g, l => l.toUpperCase()),
+        //             quantity
+        //         }));
+
+            // Store prepared data for later use
+            window.chartData = {
+                allTime: {
+                    labels: sortedItems.map(item => item.name),
+                    datasets: [{
+                        label: 'Quantity Sold',
+                        data: sortedItems.map(item => item.quantity),
+                        backgroundColor: [
+                            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+                            '#e74a3b', '#858796', '#5a5c69', '#3a3b45'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                today: {
+                    labels: sortedTodayItems.map(item => item.name),
+                    datasets: [{
+                        label: 'Quantity Sold',
+                        data: sortedTodayItems.map(item => item.quantity),
+                        backgroundColor: [
+                            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+                            '#e74a3b', '#858796', '#5a5c69', '#3a3b45'
+                        ],
+                        borderWidth: 1
+                    }]
+                }
+            };
 
     } else {
         console.log('No transaction history found for the store ID');
@@ -570,6 +834,123 @@ firebaseRef.child('orderCounter').set(0)
     });
 }
 
+// Add modal event listeners
+$('#chartsModal').on('shown.bs.modal', function () {
+    console.log('Chart Data:', window.chartData);
+    
+    // Debug: Check if data exists and is populated
+    if (!window.chartData) {
+        console.error('No chart data found');
+        return;
+    }
+    
+    if (window.chartData.allTime.labels.length === 0) {
+        console.warn('All-time chart has no labels');
+    }
+    
+    if (window.chartData.today.labels.length === 0) {
+        console.warn('Today\'s chart has no labels');
+    }
+
+    // Chart options
+    // In the modal shown event handler, update chart options:
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { 
+                position: 'top',
+                labels: {
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            title: { 
+                display: true, 
+                text: 'Top Selling Items',
+                font: { 
+                    size: 18 
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { 
+                    stepSize: 1,
+                    font: {
+                        size: 14
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Quantity Sold',
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: 14
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Menu Items',
+                    font: {
+                        size: 14
+                    }
+                }
+            }
+        }
+    };
+
+    // Wrap chart creation in try-catch blocks
+if (window.chartData?.allTime?.labels?.length > 0) {
+    try {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        window.salesChart = new Chart(ctx, {
+            type: 'bar',
+            data: window.chartData.allTime,
+            options: chartOptions
+        });
+    } catch (error) {
+        console.error('Error creating all-time chart:', error);
+    }
+}
+
+if (window.chartData?.today?.labels?.length > 0) {
+    try {
+        const todayCtx = document.getElementById('todaySalesChart').getContext('2d');
+        window.todaySalesChart = new Chart(todayCtx, {
+            type: 'bar',
+            data: window.chartData.today,
+            options: chartOptions
+        });
+    } catch (error) {
+        console.error('Error creating today chart:', error);
+    }
+}
+});
+
+// Add this right after creating the charts in the modal shown event:
+$('#salesTabs a').on('shown.bs.tab', function (e) {
+    setTimeout(() => {
+        if (window.salesChart) window.salesChart.resize();
+        if (window.todaySalesChart) window.todaySalesChart.resize();
+    }, 100);
+});
+// Add click handler for the view charts button
+document.getElementById('viewChartsButton').addEventListener('click', () => {
+    $('#chartsModal').modal('show');
+});
+
 </script>
+
+<!-- Add this modal at the bottom of the body -->
+
 </body>
 </html>

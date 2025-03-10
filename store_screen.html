@@ -755,6 +755,44 @@ logoutButton.addEventListener('click', () => {
 });
 
 // Download button event listener
+// const downloadButton = document.getElementById('downloadButton');
+// downloadButton.addEventListener('click', () => {
+//     // Check if tranHistoryList is not empty
+//     if (tranHistoryList.length > 0) {
+//         // Aggregate transactions by date and calculate total coins for each date
+//         const summaryMap = new Map();
+//         tranHistoryList.forEach(transaction => {
+//             const dateParts = transaction['Date'].split(' ')[0].split('-'); // Extract date part
+//             const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; // Reformat date to dd-mm-yyyy
+//             const coins = Number(transaction['Coins']);
+//             if (summaryMap.has(date)) {
+//                 summaryMap.set(date, summaryMap.get(date) + coins);
+//             } else {
+//                 summaryMap.set(date, coins);
+//             }
+//         });
+
+//         // Convert summary map to array of objects
+//         const summaryList = Array.from(summaryMap, ([date, coins]) => ({ Date: date, Coins: coins }));
+
+//         // Convert summary list to Excel file format
+//         const wb = XLSX.utils.book_new();
+//         const wsSummary = XLSX.utils.json_to_sheet(summaryList);
+//         XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+//         // Convert transaction history to Excel file format
+//         const wsTransactions = XLSX.utils.json_to_sheet(tranHistoryList);
+//         XLSX.utils.book_append_sheet(wb, wsTransactions, 'Transactions');
+
+//         // Save the Excel file
+//         XLSX.writeFile(wb, 'transaction_history.xlsx');
+//     } else {
+//         console.log('No transaction history found for the store ID');
+//     }
+// });
+
+// Download button event listener
+// Download button event listener
 const downloadButton = document.getElementById('downloadButton');
 downloadButton.addEventListener('click', () => {
     // Check if tranHistoryList is not empty
@@ -775,17 +813,87 @@ downloadButton.addEventListener('click', () => {
         // Convert summary map to array of objects
         const summaryList = Array.from(summaryMap, ([date, coins]) => ({ Date: date, Coins: coins }));
 
-        // Convert summary list to Excel file format
-        const wb = XLSX.utils.book_new();
-        const wsSummary = XLSX.utils.json_to_sheet(summaryList);
-        XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-
-        // Convert transaction history to Excel file format
-        const wsTransactions = XLSX.utils.json_to_sheet(tranHistoryList);
-        XLSX.utils.book_append_sheet(wb, wsTransactions, 'Transactions');
-
-        // Save the Excel file
-        XLSX.writeFile(wb, 'transaction_history.xlsx');
+        // Create day-wise item count data
+        const dayWiseItemsMap = new Map();
+        
+        // Fetch all transactions to get items data
+        db.ref('transactions').child(storeId).once('value', snapshot => {
+            const transactions = snapshot.val();
+            if (!transactions) return;
+            
+            // Process each transaction to collect item counts by date
+            Object.values(transactions).forEach(transaction => {
+                if (transaction.tStatus === 'Delivered') {
+                    // Extract and format the date
+                    const dateParts = transaction.tDate.split(' ')[0].split('-');
+                    const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                    
+                    // Initialize the date in the map if it doesn't exist
+                    if (!dayWiseItemsMap.has(date)) {
+                        dayWiseItemsMap.set(date, new Map());
+                    }
+                    
+                    // Add each item to the day's count
+                    transaction.items.forEach(item => {
+                        const itemName = item.name.trim().toLowerCase().replace(/\s+/g, ' ');
+                        const formattedName = itemName.replace(/\b\w/g, l => l.toUpperCase());
+                        const dayItems = dayWiseItemsMap.get(date);
+                        
+                        if (dayItems.has(formattedName)) {
+                            dayItems.set(formattedName, dayItems.get(formattedName) + item.quantity);
+                        } else {
+                            dayItems.set(formattedName, item.quantity);
+                        }
+                    });
+                }
+            });
+            
+            // Create Excel workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Add summary sheet
+            const wsSummary = XLSX.utils.json_to_sheet(summaryList);
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+            
+            // Add transactions sheet
+            const wsTransactions = XLSX.utils.json_to_sheet(tranHistoryList);
+            XLSX.utils.book_append_sheet(wb, wsTransactions, 'Transactions');
+            
+            // Add day-wise items sheet
+            // Convert the nested map to a format suitable for Excel
+            const dayWiseItemsData = [];
+            const allItemNames = new Set();
+            
+            // First collect all unique item names
+            dayWiseItemsMap.forEach(itemMap => {
+                itemMap.forEach((value, key) => {
+                    allItemNames.add(key);
+                });
+            });
+            
+            // Sort dates for better readability
+            const sortedDates = Array.from(dayWiseItemsMap.keys()).sort();
+            
+            // Create data rows without adding a separate header row
+            // The XLSX utility will create headers automatically from the object keys
+            sortedDates.forEach(date => {
+                const row = { Date: date };
+                const itemMap = dayWiseItemsMap.get(date);
+                
+                allItemNames.forEach(item => {
+                    row[item] = itemMap.has(item) ? itemMap.get(item) : 0;
+                });
+                
+                dayWiseItemsData.push(row);
+            });
+            
+            // Create the sheet
+            const wsDayWiseItems = XLSX.utils.json_to_sheet(dayWiseItemsData);
+            XLSX.utils.book_append_sheet(wb, wsDayWiseItems, 'Day-wise Items');
+            
+            // Save the Excel file
+            XLSX.writeFile(wb, 'transaction_history.xlsx');
+        });
     } else {
         console.log('No transaction history found for the store ID');
     }
